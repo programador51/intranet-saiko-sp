@@ -1,8 +1,7 @@
 -- **************************************************************************************************************************************************
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
---  Test 2
---  STORED PROCEDURE OLD NAME: sp_AssignFilterUsersToRol
+--  STORED PROCEDURE OLD NAME: sp_AssignFilterUsersToRol (this will be deleted, just to remember old name)
 --	STORED PROCEDURE NAME:	sp_AddFilterUsersToRol 
 --
 --	DESCRIPTION:			When add a new rol, set which executives can filter the rol on searchs related with executives
