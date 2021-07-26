@@ -2,10 +2,11 @@
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
--- Author:      <Author,,Name>
+-- Author:      Adrian Alardin
 -- Create date: 07-02-2021
--- Description: Add contact information related to a customer
--- STORED PROCEDURE NAME:	sp_addInfoContact 
+-- Description: Update the information contact related to the customers
+-- STORED PROCEDURE NAME:	sp_UpdateInfoContact
+-- STORED PROCEDURE OLD NAME: sp_editInfoContact
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -32,16 +33,16 @@
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
 --	2021-07-02		Adrian Alardin   			1.0.0.0			Initial Revision
---  2021-07-23      Adrian Alardin              1.0.0.1         Documentation update		
+--  2021-07-23      Adrian Alardin              1.0.0.1         Documentation and file name update		
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE sp_addInfoContact
+CREATE PROCEDURE sp_editInfoContact
 (
     -- Add the parameters for the stored procedure here
-    @customerID INT,
+    @contactID INT,
     @nombre NVARCHAR(30),
     @middleName NVARCHAR(30),
     @apellidoP NVARCHAR(30),
@@ -63,40 +64,21 @@ BEGIN
     SET NOCOUNT ON
 
     -- Insert statements for procedure here
-    INSERT INTO Contacts (
-            customerID,
-            firstName,
-            middleName,
-            lastName1,
-            lastName2,
-            phoneNumberAreaCode,
-            phoneNumber,
-            cellNumberAreaCode,
-            cellNumber,
-            position,
-            email,
-            status,
-            createdBy,
-            createdDate,
-            lastUpdatedBy,
-            lastUpdatedDate)
-            VALUES (
-                @customerID,
-                @nombre,
-                @middleName,
-                @apellidoP,
-                @apellidoM,
-                @ladaPhone,
-                @phone,
-                @ladaCel,
-                @cellphone,
-                @puesto,
-                @email,
-                @estatus,
-                @modifyBy,
-                @today,
-                @modifyBy,
-                @today
-            )
+    UPDATE  Contacts 
+            SET 
+            firstName=@nombre,
+            middleName=@middleName,
+            lastName1=@apellidoP,
+            lastName2=@apellidoM,
+            phoneNumberAreaCode=@ladaPhone,
+            phoneNumber=@phone,
+            cellNumberAreaCode=@ladaCel,
+            cellNumber=@cellphone,
+            position=@puesto,
+            email=@email,
+            status=@estatus,
+            lastUpdatedBy=@modifyBy,
+            lastUpdatedDate=@today
+            WHERE contactID=@contactID
 END
 GO
