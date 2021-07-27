@@ -14,8 +14,8 @@
 -- =============================================
 -- PARAMETERS:
 -- @bankAccount (PK): ID of the bank account interested of fetch the movements
--- @noRegisters: How many register bring since the "rangeBegin". For instnace, bring the next 20 registers
--- @search: Text search that must be like the rows to fetch
+-- @beginDate: Date must be range begin in order to filter
+-- @endDate: Date must be the range date in order to filter
 -- =============================================
 
 --	REVISION HISTORY/LOG
