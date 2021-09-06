@@ -32,7 +32,7 @@ SELECT
     DocumentItems.discount,
     DocumentItems.totalImport,
     DocumentItems.[order] AS 'order',
-    DocumentItems.iva,
+    DocumentItems.ivaPercentage AS iva,
     DocumentItems.unit_cost AS sellPrice,
     DocumentItems.status AS logicalDelete,
     DocumentItems.idCatalogue,
@@ -43,20 +43,20 @@ SELECT
     Catalogue.SATCODE AS satCode,
     Catalogue.SATUM AS satUm,
     Catalogue.uen AS catalogue_idUen, 
-    Catalogue.sku,
+    Catalogue.sku AS code,
     UEN.UENID AS idUen,
     UEN.description AS uenDescription,
     CONVERT(BIT,0) AS isNewItem 
     
 FROM Games 
 
-JOIN Catalogue ON Games.idCatalogue = Catalogue.id_Code
+JOIN Catalogue ON DocumentItems.idCatalogue = Catalogue.id_Code
 JOIN UEN ON Catalogue.uen = UEN.UENID
 
 WHERE 
     document = @idDocument AND
-    Games.status = 1
+    DocumentItems.status = 1
     
-ORDER BY Games.[order] ASC
+ORDER BY DocumentItems.[order] ASC
 
 END
