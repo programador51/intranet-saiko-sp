@@ -1,3 +1,10 @@
+Esta documentacion esta hecha para reforzar los topes encontrados y recurrir aqui.
+
+* [Formato para documentar SP](#doc_format)
+* Tutoriales
+    * [Importar csv a tabla de sql server](#csv_to_sql_table)
+
+<span href="#doc_format"></span>
 ## Formato de la documentacion para los SP
 
 ```sql
@@ -28,3 +35,38 @@
 --  2021-07-21      Jose Luis                   1.0.0.1         Documentation and update name of sp		
 -- *****************************************************************************************************************************
 ```
+
+---
+
+<span href="#csv_to_sql_table"></span>
+## Importar csv a tabla de sql server
+```sql
+BULK INSERT
+    [Table_name_will_be_inserted_the_data]
+
+FROM
+    [Your_path_csv_is_located]
+
+WITH(
+    FIELDTERMINATOR= ',',
+    ROWTERMINATOR = '\n'
+)
+```
+
+**Ejemplo**
+```sql
+BULK INSERT
+    Cabecera
+
+FROM
+    'C:\....\archivo.csv'
+
+WITH(
+    FIELDTERMINATOR= ',',
+    ROWTERMINATOR = '\n'
+)
+```
+
+**[Fuente](https://www.programandoamedianoche.com/2009/09/importacion-de-archivos-csv-con-el-comando-bulk-insert/)**
+
+---
