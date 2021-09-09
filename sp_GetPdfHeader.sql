@@ -21,6 +21,7 @@
 -- =================================================================================================
 --	2021-09-07		Adrian Alardin   			1.0.0.0			Initial Revision
 --	2021-09-09		Adrian Alardin   			1.0.0.1			More Features
+--	2021-09-09		Adrian Alardin   			1.0.0.2			It changes the Inner joins for left joins
 -- *****************************************************************************************************************************
 
 SET ANSI_NULLS ON
@@ -72,12 +73,12 @@ BEGIN
             CONCAT ('$ ',FORMAT(Documents.totalAmount,'N2')) AS Total,
             Users.initials AS createdBy
         FROM Documents
-            INNER JOIN Customers ON Documents.idCustomer=Customers.customerID
-            INNER JOIN CustomerTypes ON CustomerTypes.customerTypeID=Customers.customerType
-            INNER JOIN DocumentStatus ON Documents.idStatus=DocumentStatus.documentStatusID
-            INNER JOIN Currencies ON Documents.idCurrency= Currencies.currencyID
-            INNER JOIN DocumentTypes ON Documents.idTypeDocument= DocumentTypes.documentTypeID
-            INNER JOIN Users ON Documents.idExecutive = Users.userID
+            LEFT JOIN Customers ON Documents.idCustomer=Customers.customerID
+            LEFT JOIN CustomerTypes ON CustomerTypes.customerTypeID=Customers.customerType
+            LEFT JOIN DocumentStatus ON Documents.idStatus=DocumentStatus.documentStatusID
+            LEFT JOIN Currencies ON Documents.idCurrency= Currencies.currencyID
+            LEFT JOIN DocumentTypes ON Documents.idTypeDocument= DocumentTypes.documentTypeID
+            LEFT JOIN Users ON Documents.idExecutive = Users.userID
         WHERE Documents.idDocument=@idDocument
 
 END
