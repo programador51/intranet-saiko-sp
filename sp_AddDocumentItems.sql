@@ -41,7 +41,10 @@ CREATE PROCEDURE sp_AddDocumentItems(
     @totalImport DECIMAL(14,4),
     @createdBy NVARCHAR(30),
     @order INT,
-    @iva DECIMAL(5,2)
+    @iva DECIMAL(5,2),
+	@ivaPrice DECIMAL(14,4),
+	@subTotal DECIMAL(14,4),
+	@puVenta DECIMAL(14,4)
 )
 
 AS BEGIN
@@ -55,7 +58,8 @@ AS BEGIN
             document, unit_price,unit_cost,
             idCatalogue, quantity, discount,
             totalImport, "order", createdBy,
-            createdDate,ivaPercentage,status
+            createdDate,ivaPercentage,status,
+			iva,subTotal,unitSellingPrice
 
         )
 
@@ -66,7 +70,8 @@ AS BEGIN
             @idDocument, @unitPrice, @unitCost,
             @idCatalogue, @quantity, @discount,
             @totalImport, @order, @createdBy,
-            GETDATE(), @iva, 1
+            GETDATE(), @iva, 1,
+			@ivaPrice,@subTotal,@puVenta
 
         )
 

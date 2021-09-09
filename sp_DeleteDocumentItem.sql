@@ -5,18 +5,11 @@
 -- Author:      Jose Luis Perez Olguin
 -- Create date: 06-09-2021
 
--- Description: Update the information of a document item
+-- Description: Do a logical delete of the document item with the id passed as argument
 
 -- ===================================================================================================================================
 -- PARAMETERS:
--- @quantity: Number of items/services that the user requested on input
--- @idItem: ID of the doc item to edit
--- @price: Unit price that the user typed on input
--- @unitCost: Unit cost that the user typed on input
--- @discount: Discunt that the user typed on input
--- @modifyBy: Fullname of executive who edited
--- @totalImport: Calculated, IVA subtotal + subtotal(with discount applied) x quantity requested
--- @order: Order to display on UI when data it's fetched
+-- @id: ID of the document item to do logical delete
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -27,37 +20,18 @@
 --  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_UpdateDocumentItem(
-    @quantity INT,
-    @idItem INT,
-    @price DECIMAL(14,4),
-    @unitCost DECIMAL(14,4),
-    @discount DECIMAL(14,4),
-    @modifyBy NVARCHAR(30),
-    @totalImport DECIMAL(14,4),
-    @order INT,
-	@ivaPrice DECIMAL(14,4),
-	@subTotal DECIMAL(14,4),
-	@puVenta DECIMAL(14,4)
+CREATE PROCEDURE sp_DeleteDocumentItem(
+    @idDocItem INT,
+    @modifyBy NVARCHAR(30)
 )
 
 AS BEGIN
 
-    UPDATE DocumentItems 
-    
-    SET
-        quantity = @quantity,
-        unit_price = @price,
-        unit_cost = @unitCost,
-        discount = @discount,
-        lastUpdatedBy = @modifyBy,
-        lastUpdatedDate = GETDATE(),
-        totalImport = @totalImport,
-        [order] = @order,
-		iva = @ivaPrice,
-		subTotal = @subTotal,
-		unitSellingPrice = @puVenta
-    
-    WHERE idItem = @idItem
+UPDATE DocumentItems SET
+    status = 0,
+    lastUpdatedBy = @modifyBy,
+    lastUpdatedDate = GETDATE()
+
+WHERE idItem = @idDocItem
 
 END
