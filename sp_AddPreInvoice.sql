@@ -2,7 +2,7 @@
 -- Author:      Jose Luis Perez Olguin
 -- Create date: 10-09-2021
 
--- Description: Insert a purchase order (OC) and return the id of the document inserted
+-- Description: Insert a pre-invoice on the documents
 
 -- ===================================================================================================================================
 -- PARAMETERS:

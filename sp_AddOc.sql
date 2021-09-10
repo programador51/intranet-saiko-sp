@@ -57,7 +57,7 @@ INSERT INTO Documents
 VALUES
 
 (
-    2 , @idProvider , @idQuote , 
+    3 , @idProvider , @idQuote , 
     @createdBy , @idContact , @idCurrency , 
     @tcp , 5 , @creditDays ,
     @totalImport , @subTotalAmount , @ivaAmount,
