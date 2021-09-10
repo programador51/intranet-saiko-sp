@@ -28,8 +28,8 @@
 CREATE PROCEDURE sp_UpdateDocumentsRelated(
     @mizarNumber NVARCHAR(256),
     @idContract INT,
-    @idQuotation INT,
-    @idInvoice INT,
+    @idQuote INT,
+    @idPreinvoice INT,
     @idOC INT,
     @idDocument INT
 )
