@@ -59,9 +59,9 @@ VALUES
 (
     3 , @idProvider , @idQuote , 
     @createdBy , @idContact , @idCurrency , 
-    @tcp , 5 , @creditDays ,
+    @tcp , 6 , @creditDays ,
     @totalImport , @subTotalAmount , @ivaAmount,
-    6 , GETDATE()
+    5 , GETDATE()
 )
 
 SELECT SCOPE_IDENTITY()
