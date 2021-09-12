@@ -10,6 +10,7 @@
 -- ===================================================================================================================================
 -- PARAMETERS:
 -- @updatedBy: Fullname of the executive who won the quote
+-- @idDocument: Id of the quote to update the status
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -21,7 +22,8 @@
 -- *****************************************************************************************************************************
 
 CREATE PROCEDURE sp_UpdateQuoteWon(
-    @updatedBy NVARCHAR(30)
+    @updatedBy NVARCHAR(30),
+    @idDocument INT
 )
 
 AS BEGIN
@@ -30,4 +32,6 @@ UPDATE Documents SET
     idStatus = 2,
     lastUpdatedBy = @updatedBy,
     lastUpdatedDate = GETDATE()
+
+    WHERE idDocument = @idDocument
 END
