@@ -19,6 +19,7 @@
 -- @totalImport: Subtotal all IVA's + Subtotal of all costs
 -- @subTotalAmount: Subtotal of all costs
 -- @ivaAmount : Subtotal of all ivas
+-- @idExecutive: ID of the executive who created the document
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -39,7 +40,8 @@ CREATE PROCEDURE sp_AddOc(
     @creditDays INT,
     @totalImport DECIMAL(14,4),
     @subTotalAmount DECIMAL(14,4),
-    @ivaAmount DECIMAL(14,4)
+    @ivaAmount DECIMAL(14,4),
+    @idExecutive INT
 )
 
 AS BEGIN
@@ -61,7 +63,7 @@ VALUES
     @createdBy , @idContact , @idCurrency , 
     @tcp , 6 , @creditDays ,
     @totalImport , @subTotalAmount , @ivaAmount,
-    5 , GETDATE()
+    5 , GETDATE() , @idExecutive
 )
 
 SELECT SCOPE_IDENTITY()

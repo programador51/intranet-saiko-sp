@@ -18,6 +18,7 @@
 -- @ivaAmount: Total IVA of OF THE QUOTE
 -- @createdBy: Fullname who won the quote to create this document
 -- @idCustomer: ID of the customer that it's on the quote
+-- @idExecutive: ID of the executive who created the document
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -37,7 +38,8 @@ CREATE PROCEDURE sp_AddContract(
     @subTotalAmount DECIMAL(14,4),
     @ivaAmount DECIMAL(14,4),
     @createdBy NVARCHAR(30),
-    @idCustomer INT
+    @idCustomer INT,
+    @idExecutive INT
 )
 
 AS BEGIN
@@ -48,7 +50,8 @@ AS BEGIN
         idTypeDocument , idQuotation , idCustomer , 
         idContact , idCurrency , protected , 
         totalAmount , subTotalAmount , ivaAmount,
-        idStatus, createdDate , createdBy
+        idStatus, createdDate , createdBy,
+        idExecutive
     )
 
     VALUES
@@ -57,7 +60,8 @@ AS BEGIN
         6 , @idQuote , @idCustomer ,
         @idContact , @idCurrency , @tcp,
         @totalImport , @subTotalAmount , @ivaAmount,
-        13 , GETDATE() , @createdBy
+        13 , GETDATE() , @createdBy,
+        @idExecutive
 
     )
 

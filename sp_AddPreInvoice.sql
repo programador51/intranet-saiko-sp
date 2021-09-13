@@ -19,6 +19,7 @@
 -- @totalImport: Subtotal all IVA's + Subtotal of all costs
 -- @subTotalAmount: Subtotal of all costs
 -- @ivaAmount: Subtotal of all ivas
+-- @idExecutive: ID of the executive who created the document
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -42,7 +43,9 @@ CREATE PROCEDURE sp_AddPreInvoice(
     @creditDays INT,
     @totalImport DECIMAL(14,4),
     @subTotalAmount DECIMAL(14,4),
-    @ivaAmount DECIMAL(14,4)
+    @ivaAmount DECIMAL(14,4),
+    @idExecutive INT
+
 )
 
 AS BEGIN
@@ -56,7 +59,7 @@ AS BEGIN
         idCfdi , idPaymentForm , idPaymentMethod , 
         creditDays , totalAmount , subTotalAmount , 
         ivaAmount , createdDate , idStatus,
-        createdBy
+        createdBy , idExecutive
 
     )
 
@@ -69,7 +72,7 @@ AS BEGIN
         @idCfdi , @idPayForm , @idPayMethod,
         @creditDays , @totalImport , @subTotalAmount ,
         @ivaAmount , GETDATE() , 9,
-        @createdBy
+        @createdBy , idExecutive
     )
 
     SELECT SCOPE_IDENTITY()
