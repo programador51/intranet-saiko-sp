@@ -26,6 +26,7 @@ SELECT
     Catalogue.unit_cost as sellPrice,
     Catalogue.SATUM as satUm,
     Catalogue.sku as code,
+    Catalogue.currency,
     UEN.UENID as idUen,
     UEN.description as uenDescription
 
