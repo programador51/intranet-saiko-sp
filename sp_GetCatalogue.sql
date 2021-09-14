@@ -13,7 +13,8 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
+--  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query	
+--  14-09-2021     Jose Luis Perez             1.0.0.1         Joins		
 -- *****************************************************************************************************************************
 
 SELECT 
@@ -28,10 +29,15 @@ SELECT
     Catalogue.sku as code,
     Catalogue.currency,
     UEN.UENID as idUen,
-    UEN.description as uenDescription
+    UEN.description as uenDescription,
+    Currencies.currencyID,
+	Currencies.code AS currencyCode,
+	Currencies.symbol,
+	Currencies.description AS currencyDescription
 
 FROM Catalogue 
 
 JOIN UEN ON UEN.UENID = Catalogue.uen
+JOIN Currencies ON Catalogue.currency = Currencies.currencyID
 
-ORDER BY description ASC
+ORDER BY Catalogue.description ASC
