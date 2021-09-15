@@ -27,6 +27,7 @@
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
 --  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
+--  15-09-2021     Jose Luis Perez             1.0.0.1         Items from the catalogue can be in a specific currency price		
 -- *****************************************************************************************************************************
 
 CREATE PROCEDURE sp_AddCatalogueItem(
@@ -39,6 +40,7 @@ CREATE PROCEDURE sp_AddCatalogueItem(
     @idUen INT,
     @createdBy NVARCHAR(30),
     @code NVARCHAR(25)
+    @idCurrency INT
 )
 
 AS BEGIN
@@ -52,7 +54,7 @@ INTO Catalogue
         description, unit_price, unit_cost,
         SATCODE, SATUM, iva,
         uen, status, createdBy,
-        createdDate, sku
+        createdDate, sku , currency
 
     )
 
@@ -63,7 +65,7 @@ VALUES
         @description, @unitPrice, @unitCost,
         @satCode, @satUm, @iva,
         @idUen, 1, @createdBy,
-        GETDATE(), @code
+        GETDATE(), @code , @idCurrency
 
     )
 
