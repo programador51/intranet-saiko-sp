@@ -20,6 +20,11 @@
 -- @createdBy: Executive name who created the item
 -- @order: Order must have the items when they get requested 
 -- @iva: Iva percentage that was applied on item
+-- @unitPriceBeforeExchange:  Original unit price before do the exchange currency
+-- @unitCostBeforeExchange: Original unit cost before do the exchange currency
+-- @ivaBeforeExchange: Original iva price before do the exchange currency
+-- @subTotalBeforeExchange: Original subtotal before do the exchange currency
+-- @unitSellingPriceBeforeExchange: Original unit selling price before do the selling price
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -27,7 +32,8 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
+--  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query	
+--  15-09-2021     Jose Luis Perez             1.0.0.1         New columns to handle the edition of the prices when the tcp changes		
 -- *****************************************************************************************************************************
 
 
@@ -44,7 +50,12 @@ CREATE PROCEDURE sp_AddDocumentItems(
     @iva DECIMAL(5,2),
 	@ivaPrice DECIMAL(14,4),
 	@subTotal DECIMAL(14,4),
-	@puVenta DECIMAL(14,4)
+	@puVenta DECIMAL(14,4),
+    @unitPriceBeforeExchange DECIMAL(14,4),
+    @unitCostBeforeExchange DECIMAL(14,4),
+    @ivaBeforeExchange DECIMAL(14,4),
+    @subTotalBeforeExchange DECIMAL(14,4),
+    @unitSellingPriceBeforeExchange DECIMAL(14,4)
 )
 
 AS BEGIN
@@ -59,7 +70,9 @@ AS BEGIN
             idCatalogue, quantity, discount,
             totalImport, "order", createdBy,
             createdDate,ivaPercentage,status,
-			iva,subTotal,unitSellingPrice
+			iva,subTotal,unitSellingPrice,
+            unitPriceBeforeExchange , unitCostBeforeExchange , ivaBeforeExchange ,
+            subTotalBeforeExchange , unitSellingPriceBeforeExchange
 
         )
 
@@ -71,7 +84,9 @@ AS BEGIN
             @idCatalogue, @quantity, @discount,
             @totalImport, @order, @createdBy,
             GETDATE(), @iva, 1,
-			@ivaPrice,@subTotal,@puVenta
+			@ivaPrice,@subTotal,@puVenta,
+            @unitPriceBeforeExchange , @unitCostBeforeExchange , @ivaBeforeExchange ,
+            @subTotalBeforeExchange , @unitSellingPriceBeforeExchange
 
         )
 
