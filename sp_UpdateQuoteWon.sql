@@ -3,16 +3,14 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
+-- Create date: 12-09-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
+-- Description: Update the documents that are related with an specific document
 
--- **************************************************************************************************************************************************
--- =============================================
+-- ===================================================================================================================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- @updatedBy: Fullname of the executive who won the quote
+-- @idDocument: Id of the quote to update the status
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -20,33 +18,20 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--  12-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
-
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
-
+CREATE PROCEDURE sp_UpdateQuoteWon(
+    @updatedBy NVARCHAR(30),
+    @idDocument INT
 )
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
-            
-    SELECT SCOPE_IDENTITY()
+UPDATE Documents SET
+    idStatus = 2,
+    lastUpdatedBy = @updatedBy,
+    lastUpdatedDate = GETDATE()
 
+    WHERE idDocument = @idDocument
 END

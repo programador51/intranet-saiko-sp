@@ -1,52 +1,52 @@
 -- **************************************************************************************************************************************************
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
--- =============================================
--- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
-
--- Description: Create a new rol on the system AND get the id of the rol created
-
+--  STORED PROCEDURE OLD NAME: sp_AssignFilterUsersToRol (this will be deleted, just to remember old name)
+--	STORED PROCEDURE NAME:	sp_AddFilterUsersToRol 
+--
+--	DESCRIPTION:			When add a new rol, set which executives can filter the rol on searchs related with executives
+--
+--
 -- **************************************************************************************************************************************************
--- =============================================
+-- 
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- @rolID - ID of the rol that was added 
+-- @userID - ID of the executive(s) that can filter by
+-- @createdBy - Name, middlename and 1st last name who performed this action
 
--- ===================================================================================================================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--	2021-06-09		Iván Díaz   				1.0.0.0			Initial Revision
+--  2021-07-21      Jose Luis                   1.0.0.1         Documentation and update name of sp		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
+CREATE PROCEDURE sp_AddFilterUsersToRol(
 
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
+@rolID INT,
+@userID INT,
+@createdBy VARCHAR(30)
 
 )
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
+INSERT INTO AssociatedUsers
+
+(
+    rolID,status,createdBy,
+    createdDate,lastUpdatedBy,lastUpadatedDate,
+    userID
+)
             
-    SELECT SCOPE_IDENTITY()
+VALUES
+
+(
+    @rolID,1,@createdBy,
+    GETDATE(),@createdBy,GETDATE(),
+    @userID
+)
 
 END

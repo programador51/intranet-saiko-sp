@@ -5,48 +5,29 @@
 -- Author:      Jose Luis Perez Olguin
 -- Create date: 07-26-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
+-- Description: It's used to show the type of customers that are on the system
+-- Cliente, proveedor and cliente-proveedor
 
--- **************************************************************************************************************************************************
--- =============================================
--- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- STORED PROCEDURE NAME:	sp_GetSelectTypeCustomers
+-- STORED PROCEDURE OLD NAME: sp_SelectTypeCustomers
 
--- ===================================================================================================================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
---	Date			Programmer					Revision	    Revision Notes			
+--  Date            Programmer		        Revision        Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
+--  2021-07-22	    Iván Díaz   		1.0.0.0		Initial Revision
 --  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
-
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
-
-)
+CREATE PROCEDURE sp_GetSelectTypeCustomers
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
-            
-    SELECT SCOPE_IDENTITY()
+	SELECT
+        customerTypeID AS value,
+        description AS text,
+        status
+        FROM CustomerTypes
 
 END

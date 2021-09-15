@@ -3,16 +3,18 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
+-- Create date: 10-09-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
+-- Description: Update the documents that are related with an specific document
 
--- **************************************************************************************************************************************************
--- =============================================
+-- ===================================================================================================================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- @mizarNumber: Mizar number that gives when it's invoiced
+-- @idContract: ID of the contract related with
+-- @idQuotation: ID of the quote related with
+-- @idInvoice: ID of the pre-invoice related with
+-- @idOC: ID of the OC related with
+-- @idDocument: Id of the document to updated
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -20,33 +22,27 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--  10-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
-
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
-
+CREATE PROCEDURE sp_UpdateDocumentsRelated(
+    @mizarNumber NVARCHAR(256),
+    @idContract INT,
+    @idQuote INT,
+    @idPreinvoice INT,
+    @idOC INT,
+    @idDocument INT
 )
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
-            
-    SELECT SCOPE_IDENTITY()
+    UPDATE Documents SET	
+        invoiceMizarNumber = @mizarNumber,
+        idContract = @idContract,
+        idQuotation = @idQuote,
+        idInvoice = @idPreinvoice,
+        idOC = @idOc
+
+    WHERE idDocument = @idDocument
 
 END

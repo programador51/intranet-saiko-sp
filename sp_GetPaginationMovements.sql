@@ -3,50 +3,43 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
+-- Create date: 07-27-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
+-- Description: Counts how many rows contain the table Movements
+-- to calculate the "number of pages" that are on movements, according
+-- to the range filter.
 
 -- **************************************************************************************************************************************************
+
 -- =============================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- @bankAccount (PK): ID of the bank account interested of fetch the movements
+-- @beginDate: Date must be range begin in order to filter
+-- @endDate: Date must be the range date in order to filter
+-- =============================================
 
--- ===================================================================================================================================
--- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--  2021-07-27      Jose Luis Perez             1.0.0.0         Creation of query		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
-
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
-
+CREATE PROCEDURE sp_GetPaginationMovements(
+    @bankAccount INT,
+    @beginDate NVARCHAR(15),
+    @endDate NVARCHAR(15)
 )
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
+SELECT COUNT(*) 
             
-    SELECT SCOPE_IDENTITY()
+FROM Movements
+
+WHERE 
+    bankAccount = @bankAccount AND
+    CONVERT(DATETIME,@beginDate,102)  <= movementDate AND
+    CONVERT(DATETIME,@endDate,102) >= (movementDate-1)     
 
 END

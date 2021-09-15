@@ -3,34 +3,55 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 07-02-2021
--- Description: gets all the users on the sistem
--- STORED PROCEDURE NAME:	sp_getAllUsers
+-- Create date: 07-26-2021
+-- Description: update the bank account
+-- STORED PROCEDURE NAME:	sp_UpdateBankAccount
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
+-- @bankAccountID: the bank account id where we are updating the record
+-- @bankID: Bank id
+-- @accountNumber: account number
+-- @CLABE: CLABE code
+-- @SAT: SAT code
+-- @currencyID: The currency type id
+-- @initialAmount: Initial amount
+-- @nextIncome: next income
+-- @nextEgress: next egress
+-- @accontType: Account type (is save on comments)
+-- @today: the day of the record it wase created
+-- @modifyBy: the user how create/modify the record
 -- ===================================================================================================================================
 -- Returns: 
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
---	Date			Programmer					Revision	    Revision Notes			
+--	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
---	2021-07-02		Adrian Alardin   			1.0.0.0			Initial Revision
---  2021-07-23      Adrian Alardin              1.0.0.1         Documentation update		
+--	2021-07-26		Adrian Alardin   			1.0.0.0			Initial Revision
 -- *****************************************************************************************************************************
+
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:      Adrian Alardin Iracheta
--- Create Date: 07/02/2021
--- Description: sp_getAllUsers permite obtener todos los usuarios del sistema
--- =============================================
-CREATE PROCEDURE sp_getAllUsers
-
+CREATE PROCEDURE sp_UpdateBankAccount
+    (
+    -- Add the parameters for the stored procedure here
+    @bankAccountID INT,
+    @bankID INT,
+    @accountNumber NVARCHAR(50),
+    @CLABE NVARCHAR(50),
+    @SAT NVARCHAR(100),
+    @currencyID INT,
+    @initialAmount DECIMAL(14,4),
+    @nextIncome INT,
+    @nextEgress INT,
+    @accontType NVARCHAR(256),
+    @modifyBy NVARCHAR(30),
+    @today DATETIME
+)
 AS
 BEGIN
     -- SET NOCOUNT ON added to prevent extra result sets from
@@ -38,13 +59,18 @@ BEGIN
     SET NOCOUNT ON
 
     -- Insert statements for procedure here
-   SELECT 
-                userID AS value,
-                firstName,
-                middleName,
-                lastName1,
-                lastName2,
-                CONCAT(firstName,' ',middleName,' ',lastName1,' ',lastName2) AS text FROM Users
-            ORDER BY  firstName
+    UPDATE BankAccounts SET
+            bankID=@bankID,
+            accountNumber=@accountNumber,
+            CLABE=@CLABE,
+            SATcode=@SAT,
+            currencyID=@currencyID,
+            initialAmount=@initialAmount,
+            nextIncome=@nextIncome,
+            nextEgress=@nextEgress,
+            comments=@accontType,
+            lastUpdatedBy=@modifyBy,
+            lastUpdatedDate=@today
+            WHERE bankAccountID=@bankAccountID
 END
 GO

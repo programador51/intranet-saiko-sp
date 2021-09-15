@@ -3,16 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
+-- Create date: 06-09-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
-
--- **************************************************************************************************************************************************
--- =============================================
--- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- Description: Get the catalogue of the items/services that exist on the system
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -20,33 +13,31 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query	
+--  14-09-2021     Jose Luis Perez             1.0.0.1         Joins		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
+SELECT 
+    Catalogue.id_code AS id,
+    Catalogue.description,
+    Catalogue.unit_price AS unitPrice,
+    Catalogue.SATCODE AS satCode,
+    Catalogue.iva,
+    Catalogue.uen,
+    Catalogue.unit_cost as sellPrice,
+    Catalogue.SATUM as satUm,
+    Catalogue.sku as code,
+    Catalogue.currency,
+    UEN.UENID as idUen,
+    UEN.description as uenDescription,
+    Currencies.currencyID,
+	Currencies.code AS currencyCode,
+	Currencies.symbol,
+	Currencies.description AS currencyDescription
 
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
+FROM Catalogue 
 
-)
+JOIN UEN ON UEN.UENID = Catalogue.uen
+JOIN Currencies ON Catalogue.currency = Currencies.currencyID
 
-AS BEGIN
-
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
-            
-    SELECT SCOPE_IDENTITY()
-
-END
+ORDER BY Catalogue.description ASC

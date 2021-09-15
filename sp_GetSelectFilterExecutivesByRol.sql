@@ -5,48 +5,54 @@
 -- Author:      Jose Luis Perez Olguin
 -- Create date: 07-26-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
+-- Description: List of executives that the user can filter
+-- according to his rol
+
+-- STORED PROCEDURE NAME:       sp_GetSelectFilterExecutivesByRol
+-- STORED PROCEDURE OLD NAME:   sp_SelectFilterExecutives
 
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- @rolID:  Rol id in order to know which executives show to this rol
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
---	Date			Programmer					Revision	    Revision Notes			
+--	Date			Programmer				Revision	        Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--	2021-07-22		Iván Díaz   				1.0.0.0		        Initial Revision
+--      2021-07-26              Jose Luis Perez                         1.0.0.1                 Documentation and file name update		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
+CREATE PROCEDURE sp_GetSelectFilterExecutivesByRol(
 
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
+	@rolID INT
 
 )
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
-            
-    SELECT SCOPE_IDENTITY()
+	SELECT
+
+        AssociatedUsers.AssociatedID AS idRegister,
+        AssociatedUsers.userID AS idUser,
+        AssociatedUsers.rolID AS rolID,
+        Users.userID AS ignore,
+        Users.firstName,
+        Users.middleName,
+        Users.lastName1,
+        Users.lastName2,
+        CONCAT(firstName,' ',middleName,' ',lastName1,' ',lastName2) AS fullName,
+        CONVERT(BIT,0) AS mustErase
+        
+        FROM AssociatedUsers
+
+        JOIN Users ON AssociatedUsers.userID = Users.userID
+
+        WHERE AssociatedUsers.rolID = @rolID
+
+        ORDER BY firstName
 
 END

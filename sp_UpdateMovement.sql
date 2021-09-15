@@ -3,16 +3,20 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
+-- Create date: 07-27-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
+-- Description: Update the information of a movement
 
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
+-- @concept: Concept of the movement created
+-- @check: Check id of the movement
+-- @id_movement: ID of the movement to edit
+-- @payMethod (FK): Pay method of the movement
+-- @reference: Reference of the movement
+-- @registerDate: Date it corresponds the movement, format YYYY-MM-DD
+-- @modifiedBy: First name, middlename and lastName1
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -20,33 +24,31 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--  2021-07-27      Jose Luis Perez             1.0.0.0         Creation of query		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
-
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
-
+CREATE PROCEDURE sp_UpdateMovement(
+    @concept NVARCHAR(256),
+    @check NVARCHAR(50),
+    @id_movement INT,
+    @payMethod INT,
+    @reference NVARCHAR(30),
+    @registerDate NVARCHAR(15),
+    @modifiedBy NVARCHAR(30)
 )
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
-            
-    SELECT SCOPE_IDENTITY()
+UPDATE Movements
+    SET
+        concept = @concept,
+        checkNumber = @check,
+        paymentMethod = @payMethod,
+        reference = @reference,
+        movementDate = CONVERT(DATETIME,@registerDate,102),
+        lastUpdatedDate = GETDATE(),
+        lastUpdatedBy = @modifiedBy
+
+    WHERE MovementID = @id_movement
 
 END

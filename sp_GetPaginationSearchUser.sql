@@ -3,18 +3,18 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
+-- Create date: 07-22-2021
 
--- Description: Create a new rol on the system AND get the id of the rol created
+-- Description: Count how many rows contain the table Customers
+-- to calculate the "number of pages" that are on Customers according to the
+-- text typed
+
+-- STORED PROCEDURE NAME:	sp_GetPaginationSearchUser
+-- STORED PROCEDURE OLD NAME: sp_PaginationSearchUser
 
 -- **************************************************************************************************************************************************
--- =============================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
-
--- ===================================================================================================================================
+-- @textSearch: Text that the user is looking for (search input text)
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
@@ -24,29 +24,16 @@
 --  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
+CREATE PROCEDURE sp_GetPaginationSearchUser(
 
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30)
+	@textSearch NVARCHAR(300)
 
 )
 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, GETDATE(), @createdBy,
-        GETDATE()
-    );
-            
-    SELECT SCOPE_IDENTITY()
+SELECT Count(*) 
+	FROM Users
+    WHERE userName LIKE @textSearch
 
 END

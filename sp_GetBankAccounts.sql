@@ -3,34 +3,33 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 07-02-2021
--- Description: gets all the users on the sistem
--- STORED PROCEDURE NAME:	sp_getAllUsers
+-- Create date: 07-26-2021
+-- Description: Get all the bank accounts.
+-- STORED PROCEDURE NAME:	sp_GetBankAccounts
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
+-- @rangeBegin
+-- @noRegisters
 -- ===================================================================================================================================
--- Returns: 
+-- Returns:
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
---	Date			Programmer					Revision	    Revision Notes			
+--	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
---	2021-07-02		Adrian Alardin   			1.0.0.0			Initial Revision
---  2021-07-23      Adrian Alardin              1.0.0.1         Documentation update		
+--	2021-07-26		Adrian Alardin   			1.0.0.0			Initial Revision
 -- *****************************************************************************************************************************
+
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:      Adrian Alardin Iracheta
--- Create Date: 07/02/2021
--- Description: sp_getAllUsers permite obtener todos los usuarios del sistema
--- =============================================
-CREATE PROCEDURE sp_getAllUsers
-
+CREATE PROCEDURE sp_GetBankAccounts (
+    @rangeBegin INT,
+    @noRegisters INT
+)
 AS
 BEGIN
     -- SET NOCOUNT ON added to prevent extra result sets from
@@ -38,13 +37,23 @@ BEGIN
     SET NOCOUNT ON
 
     -- Insert statements for procedure here
-   SELECT 
-                userID AS value,
-                firstName,
-                middleName,
-                lastName1,
-                lastName2,
-                CONCAT(firstName,' ',middleName,' ',lastName1,' ',lastName2) AS text FROM Users
-            ORDER BY  firstName
+   SELECT BankAccounts.bankAccountID AS bankAccountID,
+        Banks.socialReason AS socialReason,
+        Banks.shortName AS shortName,
+        Banks.bankID AS bankID,
+        BankAccounts.accountNumber AS accountNumber,
+        BankAccounts.CLABE AS clabe,
+        BankAccounts.SATcode AS SAT,
+        Currencies.code AS currency,
+        BankAccounts.nextIncome AS ingreso,
+        BankAccounts.nextEgress AS egreso,
+        BankAccounts.comments AS tipoCuenta,
+        BankAccounts.initialAmount AS saldoInicial
+        FROM BankAccounts
+        INNER JOIN Currencies ON BankAccounts.currencyID=Currencies.currencyID
+        INNER JOIN Banks ON BankAccounts.bankID=Banks.bankID
+        ORDER BY BankAccounts.bankAccountID
+            OFFSET @rangeBegin ROWS
+            FETCH NEXT @noRegisters ROWS ONLY
 END
 GO
