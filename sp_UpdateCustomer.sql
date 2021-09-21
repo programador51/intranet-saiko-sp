@@ -60,6 +60,7 @@ UPDATE Customers SET
         polity = @customerState,
         cp = @postalCode,
         country = @customerCountry,
+		email = @emailCustomer,
 
         ladaPhone = @lada_phone,
         phone = @number_phone,
