@@ -23,6 +23,7 @@
 --	2021-09-09		Adrian Alardin   			1.0.0.1			More Features
 --	2021-09-09		Adrian Alardin   			1.0.0.2			It changes the Inner joins for left joins
 --	2021-09-21		Adrian Alardin   			1.0.0.3			It changes the date format (dd/MMM/yy)
+--	2021-09-24		Adrian Alardin   			1.0.0.4			We add more info to return QuoteID, ContractID, PrefacturaID, MizarID, OcID, OrigenID
 -- *****************************************************************************************************************************
 
 SET ANSI_NULLS ON
@@ -40,7 +41,8 @@ BEGIN
     SET LANGUAGE Spanish;
 
     -- Insert statements for procedure here
-    SELECT
+    SET LANGUAGE Spanish;
+                SELECT
                 ISNULL(FORMAT(Documents.documentNumber,'0000000'),'0000001') AS documentNumber,
                 DocumentTypes.description AS documentType,
                 CASE
@@ -61,6 +63,12 @@ BEGIN
                 ) AS Pais,
                 ISNULL(CONCAT ('Telefono: +',Customers.ladaPhone, ' ', Customers.phone),'Telefono: ') AS phoneNumber,
                 ISNULL (CONCAT('Celular: +',Customers.ladaMovil,' ',Customers.movil),'Celular: ') AS cellNumber,
+				ISNULL(CAST(Documents.idQuotation AS VARCHAR(100)),'ND')AS QuoteID,
+				ISNULL(CAST(Documents.idContract AS VARCHAR(100)),'ND')AS ContractID,
+				ISNULL(CAST(Documents.idInvoice AS VARCHAR(100)),'ND') AS PrefacturaID,
+				ISNULL(CAST(Documents.invoiceMizarNumber AS VARCHAR(100)), 'ND')AS MizarID,
+				ISNULL(CAST(Documents.idOC AS VARCHAR(100)),'ND') AS OcID,
+				ISNULL(CAST (Documents.idContractParent AS VARCHAR(100)),'ND') AS OrigenID,
                 Customers.rfc,
                 Customers.email AS customerEmail,
                 DocumentStatus.description AS status,
