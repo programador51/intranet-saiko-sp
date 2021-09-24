@@ -1,3 +1,8 @@
+/****** Object:  StoredProcedure [dbo].[sp_AddContract]    Script Date: 22/09/2021 09:29:48 a. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 -- **************************************************************************************************************************************************
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
@@ -19,6 +24,7 @@
 -- @createdBy: Fullname who won the quote to create this document
 -- @idCustomer: ID of the customer that it's on the quote
 -- @idExecutive: ID of the executive who created the document
+-- @contract: Contract that the user typed
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -27,9 +33,10 @@
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
 --  10-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
+--  22-09-2021     Jose Luis Perez             1.0.0.1         Nuevos atributos para agregar		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddContract(
+ALTER PROCEDURE [dbo].[sp_AddContract](
     @idQuote INT,
     @idContact INT,
     @idCurrency INT,
@@ -39,7 +46,8 @@ CREATE PROCEDURE sp_AddContract(
     @ivaAmount DECIMAL(14,4),
     @createdBy NVARCHAR(30),
     @idCustomer INT,
-    @idExecutive INT
+	@idExecutive INT,
+	@contract NVARCHAR(30)
 )
 
 AS BEGIN
@@ -51,7 +59,7 @@ AS BEGIN
         idContact , idCurrency , protected , 
         totalAmount , subTotalAmount , ivaAmount,
         idStatus, createdDate , createdBy,
-        idExecutive
+		idExecutive , expirationDate, contract
     )
 
     VALUES
@@ -61,7 +69,7 @@ AS BEGIN
         @idContact , @idCurrency , @tcp,
         @totalImport , @subTotalAmount , @ivaAmount,
         13 , GETDATE() , @createdBy,
-        @idExecutive
+		@idExecutive , GETDATE() , @contract
 
     )
 
