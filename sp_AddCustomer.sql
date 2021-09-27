@@ -15,7 +15,7 @@ CREATE PROCEDURE sp_AddCustomer(
 	@customerCity NVARCHAR(25),
 	@customerState NVARCHAR(30),
 	@postalCode INT,
-	@customerCountry NVARCHAR(2),
+	@customerCountry NVARCHAR(100),
 	@lada_phone NVARCHAR(10),
 	@number_phone NVARCHAR(30),
 	@lada_movil NVARCHAR(10),
