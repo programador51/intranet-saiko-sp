@@ -20,6 +20,8 @@
 -- @subTotalAmount: Subtotal of all costs
 -- @ivaAmount : Subtotal of all ivas
 -- @idExecutive: ID of the executive who created the document
+-- @generateCxp: True if the OC must generate the Cxp
+
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -41,7 +43,8 @@ CREATE PROCEDURE sp_AddOc(
     @totalImport DECIMAL(14,4),
     @subTotalAmount DECIMAL(14,4),
     @ivaAmount DECIMAL(14,4),
-    @idExecutive INT
+    @idExecutive INT,
+    @generateCxp TINYINT
 )
 
 AS BEGIN
@@ -53,7 +56,8 @@ INSERT INTO Documents
     createdBy , idContact , idCurrency,
     protected , idProgress , creditDays,
     totalAmount , subTotalAmount , ivaAmount,
-    idStatus, createdDate
+    idStatus, createdDate , idExecutive , 
+    generateCXP
 )
 
 VALUES
@@ -63,7 +67,8 @@ VALUES
     @createdBy , @idContact , @idCurrency , 
     @tcp , 6 , @creditDays ,
     @totalImport , @subTotalAmount , @ivaAmount,
-    5 , GETDATE() , @idExecutive
+    5 , GETDATE() , @idExecutive , 
+    @generateCXP
 )
 
 SELECT SCOPE_IDENTITY()
