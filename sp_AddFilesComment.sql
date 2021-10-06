@@ -3,7 +3,7 @@
 -- *******************************************************************************************************************************
 -- Author:      Jose Luis Perez Olguin
 -- Create date: 06-10-2021
--- Description: Add a comment to an associated file register
+-- Description: Add a comment to an associated file register, returns the record inserted
 -- STORED PROCEDURE NAME:	sp_AddFilesComment
 -- *******************************************************************************************************************************
 -- PARAMETERS:
@@ -26,6 +26,8 @@ CREATE PROCEDURE sp_AddFilesComment(
 
 AS BEGIN
 
+    DECLARE @idInserted INT;
+        
     INSERT INTO AssociatedFilesComments
 
     (
@@ -38,6 +40,17 @@ AS BEGIN
     (
         @executive , GETDATE() , @idFile , 
         @comment
-    )
+    );
+
+    SELECT @idINSERTED = SCOPE_IDENTITY();
+
+    SELECT 
+        id AS id,
+        commentedBy AS commentedBy,
+        commentedAt AS commentedDate,
+        comment AS comment
+    FROM 
+        AssociatedFilesComments 
+    WHERE id = @idInserted;
 
 END
