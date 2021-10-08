@@ -22,7 +22,8 @@
 CREATE PROCEDURE sp_GetFiles(
     @idDocument INT,
     @sinceRegister INT,
-    @limitRegisters INT
+    @limitRegisters INT,
+    @status TINYINT
 )
 
 AS BEGIN
@@ -39,18 +40,12 @@ AS BEGIN
         AssociatedFiles.fileName AS fileName,
         AssociatedFiles.typeFile AS extension,
         AssociatedFiles.urlBlob AS source,
-		CONVERT(BIT,AssociatedFiles.status) AS isActive,
-		CASE
-            WHEN
-                AssociatedFiles.status = 1
-                THEN 'Disponible'
-
-            ELSE
-                'Borrado' END AS isActiveText
+		CONVERT(BIT,AssociatedFiles.status) AS isActive
 
     FROM AssociatedFiles
 
-    WHERE AssociatedFiles.idDocument = @idDocument
+    WHERE AssociatedFiles.idDocument = @idDocument AND
+		status = @status
 
     ORDER BY id DESC
 
