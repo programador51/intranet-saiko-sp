@@ -8,6 +8,7 @@
 -- *******************************************************************************************************************************
 -- PARAMETERS:
 -- @idDocument: Id of the document to fetch the overview info of the label
+-- @status: Status of the document (1 active / 0 inactive)
 
 -- *******************************************************************************************************************************
 --	REVISION HISTORY/LOG
@@ -18,11 +19,12 @@
 -- *******************************************************************************************************************************
 
 CREATE PROCEDURE sp_GetFilesNoRegisters(
-    @idDocument INT
+    @idDocument INT,
+    @status TINYINT
 )
 
 AS BEGIN
 
-    SELECT COUNT(*) AS noRegisters FROM AssociatedFiles WHERE idDocument = @idDocument;
+    SELECT COUNT(*) AS noRegisters FROM AssociatedFiles WHERE idDocument = @idDocument AND status = @status;
 
 END
