@@ -38,8 +38,15 @@ AS BEGIN
         AssociatedFiles.createdBy AS createdBy,
         AssociatedFiles.fileName AS fileName,
         AssociatedFiles.typeFile AS extension,
-        AssociatedFiles.urlBlob AS source
+        AssociatedFiles.urlBlob AS source,
+		CONVERT(BIT,AssociatedFiles.status) AS isActive,
+		CASE
+            WHEN
+                AssociatedFiles.status = 1
+                THEN 'Disponible'
 
+            ELSE
+                'Borrado' END AS isActiveText
 
     FROM AssociatedFiles
 
