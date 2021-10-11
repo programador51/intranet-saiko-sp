@@ -24,6 +24,7 @@
 --	2021-09-09		Adrian Alardin   			1.0.0.2			It changes the Inner joins for left joins
 --	2021-09-21		Adrian Alardin   			1.0.0.3			It changes the date format (dd/MMM/yy)
 --	2021-09-24		Adrian Alardin   			1.0.0.4			We add more info to return QuoteID, ContractID, PrefacturaID, MizarID, OcID, OrigenID
+--	2021-10-11		Adrian Alardin   			1.0.0.5			It change the currency format.
 -- *****************************************************************************************************************************
 
 SET ANSI_NULLS ON
@@ -31,7 +32,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE PROCEDURE sp_GetPdfHeader(
-    @documentId INT
+    @idDocument INT
 )
 AS
 BEGIN
@@ -42,6 +43,7 @@ BEGIN
 
     -- Insert statements for procedure here
     SET LANGUAGE Spanish;
+                SET LANGUAGE Spanish;
                 SELECT
                 ISNULL(FORMAT(Documents.documentNumber,'0000000'),'0000001') AS documentNumber,
                 DocumentTypes.description AS documentType,
@@ -70,16 +72,25 @@ BEGIN
 				ISNULL(CAST(Documents.idOC AS VARCHAR(100)),'ND') AS OcID,
 				ISNULL(CAST (Documents.idContractParent AS VARCHAR(100)),'ND') AS OrigenID,
                 Customers.rfc,
-                Customers.email AS customerEmail,
+				CASE 
+					WHEN Contacts.email IS NOT NULL THEN Contacts.email
+					WHEN (Contacts.email IS NULL) AND (Customers.email IS NOT NULL) THEN Customers.email
+					ELSE '-1'
+					END AS customerEmail,
+				CASE 
+					WHEN Contacts.email IS NOT NULL THEN CONCAT (Contacts.firstName, ' ',Contacts.middleName,' ',Contacts.lastName1,' ',Contacts.lastName2)
+					ELSE '-1'
+				END AS contactName,
                 DocumentStatus.description AS status,
                 Documents.creditDays,
                 REPLACE(CONVERT(VARCHAR(10),Documents.expirationDate,6),' ','/') AS expirationDate,
                 Currencies.code,
-                CONCAT ('$',FORMAT(Documents.subTotalAmount,'N2')) AS subTotal,
-                CONCAT ('$',FORMAT(Documents.ivaAmount,'N2')) AS IVA,
-                CONCAT ('$',FORMAT(Documents.totalAmount,'N2')) AS Total,
+                FORMAT(Documents.subTotalAmount,'C','mx-MX') AS subTotal,
+                FORMAT(Documents.ivaAmount,'C','mx-MX') AS IVA,
+                FORMAT(Documents.totalAmount,'C','mx-MX') AS Total,
                 Users.initials AS createdBy,
-                Users.email AS userEmail
+                Users.email AS userEmail,
+				CONCAT (Users.firstName,' ',Users.middleName, ' ',Users.lastName1, ' ',Users.lastName2) AS name
             FROM Documents
                 LEFT JOIN Customers ON Documents.idCustomer=Customers.customerID
                 LEFT JOIN CustomerTypes ON CustomerTypes.customerTypeID=Customers.customerType
@@ -87,6 +98,7 @@ BEGIN
                 LEFT JOIN Currencies ON Documents.idCurrency= Currencies.currencyID
                 LEFT JOIN DocumentTypes ON Documents.idTypeDocument= DocumentTypes.documentTypeID
                 LEFT JOIN Users ON Documents.idExecutive = Users.userID
+				LEFT JOIN Contacts ON Documents.idContact= Contacts.contactID
             WHERE Documents.idDocument=@idDocument
 
 END
