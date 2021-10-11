@@ -14,6 +14,7 @@
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
 --  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
+--  11-10-2021     Jose Luis Perez             2.0.0.0         Comments are saved on table 'Commentation'		
 -- *****************************************************************************************************************************
 
 CREATE PROCEDURE sp_GetDocumentComments(
@@ -23,19 +24,19 @@ CREATE PROCEDURE sp_GetDocumentComments(
 AS BEGIN
 
     SELECT 
-        idComment AS id,
-        description AS name,
-        document AS idDocument,
-        [order],
-        CONVERT(BIT,0) AS isNewComment 
-    
-    FROM 
-        Comments
+          commentId AS id,
+          comment AS name,
+          documentId AS idDocument,
+          [order],
+          CONVERT(BIT,0) AS isNewComment 
+
+    FROM Commentation
 
     WHERE
-        document = @idDocument AND
+        documentId = @idDocument AND
+        commentTypeId = 5 AND
         status = 1
 
-    ORDER BY 'order' ASC
+    ORDER BY 'order' ASC;
 
 END
