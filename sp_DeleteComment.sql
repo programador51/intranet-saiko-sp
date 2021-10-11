@@ -26,8 +26,10 @@ CREATE PROCEDURE sp_DeleteComment(
 
 AS BEGIN
 
-UPDATE Comments SET
-    status = 0
-WHERE idComment = @idComment
+	UPDATE Commentation 
+        
+    SET status = 0
+
+	WHERE commentId = @idComment;
 
 END
