@@ -14,6 +14,7 @@
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
 --  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
+--  11-10-2021     Jose Luis Perez             2.0.0.0         Data saved in another table		
 -- *****************************************************************************************************************************
 
 CREATE PROCEDURE sp_AddDocumentComments(
@@ -25,24 +26,18 @@ CREATE PROCEDURE sp_AddDocumentComments(
 
 AS BEGIN
 
-    INSERT 
+    INSERT INTO Commentation
 
-    INTO Comments
-
-        (
-
-            document,"order",createdBy,
-            createdDate,status,description
-
-        )
+    (
+        documentId , createdDate , "order" ,
+        status , comment , createdBy , commentTypeId
+    )
 
     VALUES
 
-        (
-
-            @idDocument, @order, @createdBy,
-            GETDATE(),1,@description
-
-        )
+    (
+        @idDocument , GETDATE() , @order ,
+        1 , @description , @createdBy , 5
+    )
 
 END

@@ -33,15 +33,15 @@ CREATE PROCEDURE sp_UpdateComments(
 
 AS BEGIN
 
-UPDATE Comments 
+    UPDATE Commentation 
 
-SET
+    SET
 
-    description = @description,
+    comment = @description , 
     [order] = @order,
-    lastUpdatedBy = @modifyBy,
-    lastUpdatedDate = GETDATE()
-        
-WHERE idComment = @id
+    lastUpdateBy = @modifyBy,
+    lastUpdateDate = GETDATE()
+
+    WHERE commentId = @id;
 
 END
