@@ -36,7 +36,7 @@ AS BEGIN
         FORMAT(AssociatedFiles.associatedDate,'yyyy-MM-dd') AS [associatedDate.yyyymmdd],
         REPLACE(CONVERT(VARCHAR(10),AssociatedFiles.associatedDate,6),' ','/') AS [associatedDate.parsed],
         REPLACE(CONVERT(VARCHAR(10),AssociatedFiles.associatedDate,6),' ','/') AS createdDate,
-        AssociatedFiles.createdBy AS createdBy,
+        dbo.fn_initialsName(AssociatedFiles.createdBy) AS createdBy,	
         AssociatedFiles.fileName AS fileName,
         AssociatedFiles.typeFile AS extension,
         AssociatedFiles.urlBlob AS source,
