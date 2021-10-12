@@ -34,7 +34,6 @@ AS BEGIN
 
     WHERE
         documentId = @idDocument AND
-        commentTypeId = 5 AND
         status = 1
 
     ORDER BY 'order' ASC;
