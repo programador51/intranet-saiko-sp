@@ -30,14 +30,14 @@ AS BEGIN
 
     (
         documentId , createdDate , "order" ,
-        status , comment , createdBy , commentTypeId
+        status , comment , createdBy 
     )
 
     VALUES
 
     (
         @idDocument , GETDATE() , @order ,
-        1 , @description , @createdBy , 5
+        1 , @description , @createdBy
     )
 
 END
