@@ -85,38 +85,49 @@ AS BEGIN
     -----------------------------------------------------------------------------------------
     -- Return the number documents
     SELECT 
-        
+		
+		-------------------------------------------------------------------
+
         CASE @idTypeDocument
 
             WHEN 1 THEN 
-                @documentNumber
+				FORMAT(@documentNumber,'0000000')
+                
 
-            ELSE @noQuote
+            ELSE FORMAT(@noQuote,'0000000')
         END AS noQuote,
+
+		-------------------------------------------------------------------
 
         CASE @idTypeDocument
 
             WHEN 2 THEN 
-                @documentNumber
+                FORMAT(@documentNumber,'0000000')
 
-            ELSE @noPreinvoice
+            ELSE FORMAT(@noPreinvoice,'0000000')
         END AS noPreinvoice,
+
+		-------------------------------------------------------------------
 
         CASE @idTypeDocument
 
             WHEN 6 THEN 
-                @documentNumber
+                FORMAT(@documentNumber,'0000000')
 
-            ELSE @noContract
+            ELSE FORMAT(@noContract,'0000000')
         END AS noContract,
+
+		-------------------------------------------------------------------
         
         CASE @idTypeDocument
 
             WHEN 3 THEN 
-                @documentNumber
+				FORMAT(@documentNumber,'0000000')
 
-            ELSE @noOc
+            ELSE FORMAT(@noOc,'0000000')
         END AS noOc,
+
+		-------------------------------------------------------------------
 
         @invoiceMizar AS invoice;
 
