@@ -10,9 +10,14 @@
 -- =============================================
 -- PARAMETERS:
 -- @executiveID - The executive id
--- @documentID - The document id
+-- @ID - The documenT,contact or customer id
 -- @sinceRegister - The begin range for the table
 -- @limitRegisters - The end range for the table
+-- @reminderFrom: Is an aditional value to validate if the reminder is for a contact, customer or a document.
+--                The posibles values are:
+--                  1: Customer                
+--                  2: Contact                 
+--                  3: Document 
 -- ===================================================================================================================================
 -- Returns:
 -- The commentId,createdDate, the full name how registerd de reminder,the full name how must attend the reminder, attention date and 
@@ -24,6 +29,8 @@
 --	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
 --	2021-10-10		Adrian Alardin   			1.0.0.0			Initial Revision-
+--	2021-10-10		Adrian Alardin   			1.0.0.1			It changes the way we validate if the reminder was attended
+--			                                                    
 -- *****************************************************************************************************************************
 SET
     ANSI_NULLS ON
@@ -32,16 +39,15 @@ SET
     QUOTED_IDENTIFIER ON
 GO
     CREATE PROCEDURE sp_GetReminder(
-        @executiveID INT 
-        @documentID INT 
-        @sinceRegister INT 
-        @limitRegisters INT
+        @executiveID INT ,
+        @ID INT ,
+        @sinceRegister INT ,
+        @limitRegisters INT,
+        @reminderFrom INT
     ) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
 SET
     NOCOUNT ON
-SET
-    LANGUAGE Spanish;
 
 -- Insert statements for procedure here
 SET
@@ -59,6 +65,7 @@ SELECT
         ' ',
         '/'
     ) AS reminderDate,
+    userRegister.initials AS registerInitials,
     CONCAT (
         userRegister.firstName,
         ' ',
@@ -69,28 +76,39 @@ SELECT
         userRegister.lastName2
     ) AS registerFullName,
     userAttend.initials AS attendedInitials,
+    CONCAT (
+        userAttend.firstName,
+        ' ',
+        userAttend.middleName,
+        ' ',
+        userAttend.lastName1,
+        ' ',
+        userAttend.lastName2
+    ) AS attendedFullName,
     REPLACE(
         CONVERT(VARCHAR(10), Commentation.attentionDate, 6),
         ' ',
         '/'
     ) AS attentionDate,
-    Commentation.status,
-    CASE
-        WHEN Commentation.status = 0 THEN 'No atendido'
-        ELSE 'Atendido'
-    END AS statusDescription,
+    ISNULL(Commentation.realAttentionDate,'---'),
     Commentation.comment,
-	CommentsTypes.descriptionType
+	Commentation.commentTypeDescription 
 FROM
     Commentation
     LEFT JOIN Users as userRegister ON Commentation.registerById = userRegister.userID
     LEFT JOIN Users as userAttend ON Commentation.mustAttendById = userAttend.userID
-    LEFT JOIN CommentsTypes  ON Commentation.commentTypeId = CommentsTypes.commentsTypesId
 
 WHERE
     (
         Commentation.registerById = @executiveID
-        AND Commentation.documentId = @documentID
+        AND (
+		CASE
+			WHEN @reminderFrom=1 THEN Commentation.customerId
+			WHEN @reminderFrom=2 THEN Commentation.contactId
+			WHEN @reminderFrom=3 THEN Commentation.documentId
+			ELSE -1
+		END =@ID
+		)
     )
     AND (Commentation.mustAttendById IS NOT NULL)
 ORDER BY

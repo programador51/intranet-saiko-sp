@@ -25,6 +25,7 @@
 --	2021-09-21		Adrian Alardin   			1.0.0.3			It changes the date format (dd/MMM/yy)
 --	2021-09-24		Adrian Alardin   			1.0.0.4			We add more info to return QuoteID, ContractID, PrefacturaID, MizarID, OcID, OrigenID
 --	2021-10-11		Adrian Alardin   			1.0.0.5			It change the currency format.
+--	2021-10-14		Adrian Alardin   			1.0.0.6			I add the TotalInt import to handle n2words library.
 -- *****************************************************************************************************************************
 
 SET ANSI_NULLS ON
@@ -39,8 +40,8 @@ BEGIN
     -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
     SET NOCOUNT ON
-    SET LANGUAGE Spanish;
 
+    -- Insert statements for procedure here
     -- Insert statements for procedure here
     SET LANGUAGE Spanish;
                 SET LANGUAGE Spanish;
