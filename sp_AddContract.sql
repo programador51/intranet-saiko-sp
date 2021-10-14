@@ -47,7 +47,9 @@ ALTER PROCEDURE [dbo].[sp_AddContract](
     @createdBy NVARCHAR(30),
     @idCustomer INT,
 	@idExecutive INT,
-	@contract NVARCHAR(30)
+	@contract NVARCHAR(30),
+    @expiration DATETIME,
+	@reminder DATETIME
 )
 
 AS BEGIN
@@ -59,7 +61,8 @@ AS BEGIN
         idContact , idCurrency , protected , 
         totalAmount , subTotalAmount , ivaAmount,
         idStatus, createdDate , createdBy,
-		idExecutive , expirationDate, contract
+		idExecutive , expirationDate, contract,
+        reminderDate
     )
 
     VALUES
@@ -69,7 +72,8 @@ AS BEGIN
         @idContact , @idCurrency , @tcp,
         @totalImport , @subTotalAmount , @ivaAmount,
         13 , GETDATE() , @createdBy,
-		@idExecutive , GETDATE() , @contract
+		@idExecutive , @expiration , @contract ,
+        @reminder
 
     )
 
