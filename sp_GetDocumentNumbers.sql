@@ -44,6 +44,9 @@ AS BEGIN
     -- Number oc (Initially, will store the id of the document and eventually overwritten with the no. document)
     DECLARE @noOc INT;
 
+    -- Number origin (Initially, will store the id of the document and eventually overwritten with the no. document)
+	DECLARE @origin INT;
+
     SELECT 
     @idDocument = documentNumber, 
     @idTypeDocument = idTypeDocument,
@@ -52,7 +55,8 @@ AS BEGIN
     @noContract = idContract,
     @noPreinvoice = idInvoice,
     @noOc = idOC,
-    @invoiceMizar = invoiceMizarNumber
+    @invoiceMizar = invoiceMizarNumber,
+    @origin = idContractParent
 
     FROM Documents WHERE idDocument = @idDocument;
 
@@ -81,6 +85,12 @@ AS BEGIN
         @noOc = documentNumber
 
     FROM Documents WHERE idDocument = @noOc;
+
+    -- Set origin number
+    SELECT
+        @origin = documentNumber
+
+    FROM Documents WHERE idDocument = @origin;
 
     -----------------------------------------------------------------------------------------
     -- Return the number documents
@@ -128,6 +138,15 @@ AS BEGIN
         END AS noOc,
 
 		-------------------------------------------------------------------
+
+        CASE @idTypeDocument
+
+            WHEN 9 THEN 
+				FORMAT(@documentNumber,'0000000')
+                
+
+            ELSE FORMAT(@origin,'0000000')
+        END AS noOrigin,
 
         @invoiceMizar AS invoice;
 
