@@ -1,0 +1,66 @@
+-- **************************************************************************************************************************************************
+--	STORED PROCEDURE OVERVIEW INFORMATION
+-- **************************************************************************************************************************************************
+-- =============================================
+-- Author:      Adrian Alardin
+-- Create date: 14-10-2021
+-- Description: We obtain the reminders created by an executive
+-- STORED PROCEDURE NAME:	sp_GetRemindersToAttent
+-- **************************************************************************************************************************************************
+-- =============================================
+-- PARAMETERS:
+-- @executiveID - The executive id
+-- ===================================================================================================================================
+-- Returns:
+-- commentId, registerById, mustAttendById, customerID, contactID, documentId, reminderDate, attentionDate
+-- =============================================
+-- **************************************************************************************************************************************************
+--	REVISION HISTORY/LOG
+-- **************************************************************************************************************************************************
+--	Date			Programmer					Revision	    Revision Notes
+-- =================================================================================================
+--	2021-10-14		Adrian Alardin   			1.0.0.0			Initial Revision
+--			                                                    
+-- *****************************************************************************************************************************
+SET
+    ANSI_NULLS ON
+GO
+SET
+    QUOTED_IDENTIFIER ON
+GO
+    CREATE PROCEDURE sp_GetRemindersToAttent(@executiveID INT) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
+    -- interfering with SELECT statements.
+SET
+    NOCOUNT ON -- Insert statements for procedure here
+SET
+    LANGUAGE Spanish;
+
+SELECT
+    commentId,
+    registerById,
+    mustAttendById,
+    customerID,
+    contactID,
+    documentId,
+    reminderDate,
+    attentionDate,
+    ISNULL(CONVERT(VARCHAR(10), realAttentionDate, 6), '---') AS realAttentionDate,
+    createdDate,
+    commentTypeDescription
+FROM
+    Commentation
+WHERE
+    (
+        registerById = @executiveId
+        OR mustAttendById = @executiveId
+    )
+    AND (
+        reminderDate <= GETDATE()
+        OR reminderDate <= DATEADD(DAY, 5, GETDATE())
+    )
+    AND status = 1
+    AND realAttentionDate IS NULL
+ORDER BY
+    reminderDate DESC
+END
+GO
