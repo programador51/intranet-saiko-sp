@@ -21,25 +21,26 @@
 CREATE PROCEDURE sp_AddFilesComment(
     @idFile INT,
     @comment NVARCHAR(300),
-    @executive NVARCHAR(30)
+    @executive NVARCHAR(30),
+    @idExecutive INT
 )
 
 AS BEGIN
 
     DECLARE @idInserted INT;
         
-    INSERT INTO AssociatedFilesComments
+    INSERT INTO Commentation
 
     (
-        commentedBy , commentedAt , idAssociatedFile , 
-        comment
+        documentId , createdDate , comment , 
+        status , createdBy, registerById
     )
 
     VALUES
 
     (
-        @executive , GETDATE() , @idFile , 
-        @comment
+        @idFile , GETDATE() , @comment , 
+        1 , @executive , @idExecutive
     );
 
     SELECT @idINSERTED = SCOPE_IDENTITY();
