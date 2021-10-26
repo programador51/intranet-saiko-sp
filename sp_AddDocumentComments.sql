@@ -21,7 +21,8 @@ CREATE PROCEDURE sp_AddDocumentComments(
     @description NVARCHAR(200),
     @idDocument INT,
     @createdBy NVARCHAR(30)
-    @order INT
+    @order INT,
+    @idExecutive INT
 )
 
 AS BEGIN
@@ -30,14 +31,16 @@ AS BEGIN
 
     (
         documentId , createdDate , "order" ,
-        status , comment , createdBy 
+        status , comment , createdBy ,
+        registerById
     )
 
     VALUES
 
     (
         @idDocument , GETDATE() , @order ,
-        1 , @description , @createdBy
+        1 , @description , @createdBy ,
+        @idExecutive
     )
 
 END
