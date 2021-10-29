@@ -18,8 +18,9 @@
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes
--- =================================================================================================
+-- ========================================================================================================================================
 --	2021-07-30		Adrian Alardin   			1.0.0.0			Initial Revision
+..	2021-10-29		Iván Díaz				1.0.0.1			JOIN nor required
 -- *****************************************************************************************************************************
 
 SET ANSI_NULLS ON
@@ -38,16 +39,16 @@ BEGIN
     -- Insert statements for procedure here
    SELECT
 	contactID,
-	Contacts.customerID,
+	customerID,
 	firstName,
 	middleName,
 	lastName1,
 	lastName2,
 	CONCAT(firstName,' ',middleName,' ',lastName1,' ',lastName2) AS fullName,
-	Contacts.status
+	[status]
 FROM Contacts
-JOIN Customers ON Contacts.customerID= Customers.customerID
-WHERE Contacts.customerID=@customerID AND Contacts.status=1
+--JOIN Customers ON Contacts.customerID= Customers.customerID     --1.0.0.1	
+WHERE Contacts.customerID=@customerID AND Contacts.status=1	
 
 END
 GO
