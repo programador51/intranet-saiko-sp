@@ -44,6 +44,7 @@
 --
 --	2021-10-12		Adrian Alardin   			1.0.1.1			We change the sp to fit the needs to insert the reminder into
 --				                                                customers,contacts or douments.
+--	2021-10-15		Adrian Alardin   			1.0.1.2			We insert two columns more commentType= 1,reminderFrom=@reminderFrom
 -- *****************************************************************************************************************************
 SET
     ANSI_NULLS ON
@@ -56,7 +57,7 @@ GO
         @attentedExecutive INT,
         @reminderDate DATETIME,
         @attentionDate DATETIME,
-        @comments NVARCHAR (150),
+        @comments NVARCHAR (256),
         @reminderTagDescirption NVARCHAR (50),
         @createdBy NVARCHAR (30),
         @ID INT,
@@ -94,7 +95,9 @@ INSERT INTO
         lastUpdateDate,
 		customerId,
         contactId,
-		documentId
+		documentId,
+		commentType,
+		reminderFrom
     )
 VALUES
 (
@@ -111,7 +114,9 @@ VALUES
         GETDATE(),
 		@customerID,
 		@contactID,
-		@documentID
+		@documentID,
+		1,
+		@reminderFrom
     )
 END
 GO

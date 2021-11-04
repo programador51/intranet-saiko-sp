@@ -30,6 +30,7 @@
 -- =================================================================================================
 --	2021-10-10		Adrian Alardin   			1.0.0.0			Initial Revision-
 --	2021-10-10		Adrian Alardin   			1.0.0.1			It changes the way we validate if the reminder was attended
+--	2021-10-10		Adrian Alardin   			1.0.0.2			It changes the way we validate if the reminder is a reminder [commentType=1]
 --			                                                    
 -- *****************************************************************************************************************************
 SET
@@ -90,7 +91,7 @@ SELECT
         ' ',
         '/'
     ) AS attentionDate,
-    ISNULL(Commentation.realAttentionDate,'---'),
+    ISNULL(CONVERT(VARCHAR(10), Commentation.realAttentionDate, 6),'---') AS realAttentionDate,
     Commentation.comment,
 	Commentation.commentTypeDescription 
 FROM
@@ -110,7 +111,7 @@ WHERE
 		END =@ID
 		)
     )
-    AND (Commentation.mustAttendById IS NOT NULL)
+    AND (Commentation.commentType=1)
 ORDER BY
     Commentation.attentionDate ASC OFFSET @sinceRegister ROWS FETCH NEXT @limitRegisters ROWS ONLY
 END
