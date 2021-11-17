@@ -142,7 +142,8 @@ AS BEGIN
         (Documents.idExecutive = @idExecutive) AND
         (Documents.idTypeDocument = @idTypeDocument) AND
         (Documents.idStatus = @idStatus OR @idStatus IS NULL) AND
-        (Documents.idCustomer = @idCustomer)
+        (Documents.idCustomer = @idCustomer) AND
+        (Documents.expirationDate BETWEEN @beginDate AND @endDate)
 
     ORDER BY Documents.idDocument DESC
     
