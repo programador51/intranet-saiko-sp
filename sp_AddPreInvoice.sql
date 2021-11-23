@@ -1,8 +1,13 @@
+/****** Object:  StoredProcedure [dbo].[sp_AddPreInvoice]    Script Date: 04/11/2021 12:16:13 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 -- =============================================
 -- Author:      Jose Luis Perez Olguin
 -- Create date: 10-09-2021
 
--- Description: Insert a pre-invoice on the documents
+-- Description: Insert a preinvoice and return the id of the document inserted
 
 -- ===================================================================================================================================
 -- PARAMETERS:
@@ -20,6 +25,7 @@
 -- @subTotalAmount: Subtotal of all costs
 -- @ivaAmount: Subtotal of all ivas
 -- @idExecutive: ID of the executive who created the document
+-- @authorizationFlag: ID that indicates if the preinvoice can be stamped
 
 -- ===================================================================================================================================
 -- **************************************************************************************************************************************************
@@ -30,7 +36,7 @@
 --  10-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddPreInvoice(
+ALTER PROCEDURE [dbo].[sp_AddPreInvoice](
     @idQuote INT,
     @idCustomer INT,
     @createdBy NVARCHAR(30),
@@ -44,8 +50,8 @@ CREATE PROCEDURE sp_AddPreInvoice(
     @totalImport DECIMAL(14,4),
     @subTotalAmount DECIMAL(14,4),
     @ivaAmount DECIMAL(14,4),
-    @idExecutive INT
-
+	@idExecutive INT,
+	@authorizationFlag INT
 )
 
 AS BEGIN
@@ -59,7 +65,8 @@ AS BEGIN
         idCfdi , idPaymentForm , idPaymentMethod , 
         creditDays , totalAmount , subTotalAmount , 
         ivaAmount , createdDate , idStatus,
-        createdBy , idExecutive
+        createdBy , idExecutive , expirationDate,
+		authorizationFlag
 
     )
 
@@ -69,10 +76,11 @@ AS BEGIN
 
         2 , @idQuote , @idContact,
         @idCustomer , @idCurrency , @tcp,
-        @idCfdi , @idPayForm , @idPayMethod,
+        @idCfdi , 1 , 99,
         @creditDays , @totalImport , @subTotalAmount ,
         @ivaAmount , GETDATE() , 9,
-        @createdBy , idExecutive
+        @createdBy , @idExecutive , GETDATE(),
+		@authorizationFlag
     )
 
     SELECT SCOPE_IDENTITY()
