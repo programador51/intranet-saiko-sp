@@ -45,6 +45,7 @@
 --	2021-10-12		Adrian Alardin   			1.0.1.1			We change the sp to fit the needs to insert the reminder into
 --				                                                customers,contacts or douments.
 --	2021-10-15		Adrian Alardin   			1.0.1.2			We insert two columns more commentType= 1,reminderFrom=@reminderFrom
+--	2021-10-15		Adrian Alardin   			1.0.1.3			We adjust to make commentType a variable
 -- *****************************************************************************************************************************
 SET
     ANSI_NULLS ON
@@ -61,7 +62,11 @@ GO
         @reminderTagDescirption NVARCHAR (50),
         @createdBy NVARCHAR (30),
         @ID INT,
-		@reminderFrom INT
+		@reminderFrom INT,
+		@realAttentionDate DATETIME,
+		@attentionComment NVARCHAR(256),
+		@previousCommentId BIGINT,
+		@commentType INT
     ) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
 SET
@@ -97,7 +102,10 @@ INSERT INTO
         contactId,
 		documentId,
 		commentType,
-		reminderFrom
+		reminderFrom,
+		realAttentionDate,
+		attentionComment,
+		previousCommentId
     )
 VALUES
 (
@@ -115,8 +123,13 @@ VALUES
 		@customerID,
 		@contactID,
 		@documentID,
-		1,
-		@reminderFrom
+		@commentType,
+		@reminderFrom,
+		@realAttentionDate,
+		@attentionComment,
+		@previousCommentId
     )
+    UPDATE Documents SET hasReminders=1 WHERE @reminderFrom=3 AND idDocument=@ID
+	SELECT SCOPE_IDENTITY() FROM Commentation AS previousCommentId
 END
 GO
