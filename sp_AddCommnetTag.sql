@@ -65,9 +65,9 @@ INSERT INTO
     VALUES(
         @descriptionTag,
         @status,
-        GETDATE()
+        GETDATE(),
         @createdBy,
-        GETDATE()
+        GETDATE(),
         @executiveId,
         @reminderFrom
     )
