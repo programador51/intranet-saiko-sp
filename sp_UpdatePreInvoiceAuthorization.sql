@@ -61,10 +61,11 @@ GO
         @ID BIGINT,
         @reminderFrom INT,
         @createdBy NVARCHAR(30),
-        @previousCommentId INT,
-        @commentID INT,
+        @previousCommentId BIGINT,
+        @commentID BIGINT,
 
-        @auhtorization TINYINT
+        @auhtorization TINYINT,
+		@commentType INT
     ) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
 SET
@@ -73,23 +74,29 @@ SET
     DECLARE @comment NVARCHAR (256)
     DECLARE @idDocument BIGINT
     DECLARE @limitTime DATETIME
+	DECLARE @commentTypeAuth INT
+	DECLARE @commentTypeReject INT
 
     SET @comment=@comments
     SET @idDocument=@ID
-    SET @limitTime=@attentionDate
+	SET @limitTime=@attentionDate
+	SET @commentTypeAuth=6
+	SET @commentTypeReject=8
 
-    EXEC sp_AddReminder @userRegisteredID,@attentedExecutive,@reminderDate,@attentionDate,@comments,@reminderTagDescirption,@createdBy,@ID,@reminderFrom,null,null,@commentID
-    EXEC sp_UpdateReminder @comment,@commentID,@commentID
+    
+    EXEC sp_UpdateReminder @comment,@commentID,@commentID,@commentType
     IF @auhtorization=1 --Se autoriza el documento
         BEGIN
+			EXEC sp_AddReminder @userRegisteredID,@attentedExecutive,@reminderDate,@attentionDate,@comments,@reminderTagDescirption,@createdBy,@ID,@reminderFrom,null,null,@commentID,@commentTypeAuth
             EXEC sp_UpdatePreinvoiceAuth @idDocument,4,@limitTime
             SET @message=' ha sido authorizada y se ha informado al ejecutivo'
         END
     ELSE --No se autoriza el documento
         BEGIN
+		EXEC sp_AddReminder @userRegisteredID,@attentedExecutive,@reminderDate,@attentionDate,@comments,@reminderTagDescirption,@createdBy,@ID,@reminderFrom,null,null,@commentID,@commentTypeReject
             EXEC sp_UpdatePreinvoiceAuth @idDocument,2,null
             SET @message=' ha sido rechazada y se ha informado al ejecutivo'
         END
-        SELECT @message AS message
+	SELECT @message AS message
     END
 GO
