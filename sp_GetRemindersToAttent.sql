@@ -71,10 +71,7 @@ SELECT
 FROM
     Commentation
 WHERE
-    (
-        registerById = @executiveId
-        OR mustAttendById = @executiveId
-    )
+    (mustAttendById = @executiveId)
     AND (
         reminderDate <= GETDATE()
         OR reminderDate <= DATEADD(DAY, 5, GETDATE())

@@ -30,14 +30,15 @@ SET
 GO
     CREATE PROCEDURE sp_UpdateReminder(
         @comment NVARCHAR (256),
-        @commentID BIGINT
+        @commentID BIGINT,
+        @previousCommentId BIGINT
 
     ) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
 SET
     NOCOUNT ON 
  UPDATE Commentation
- SET attentionComment=@comment, realAttentionDate= GETDATE()
+ SET attentionComment=@comment, realAttentionDate= GETDATE(),previousCommentId=@previousCommentId
  WHERE commentId=@commentID
 END
 GO

@@ -50,7 +50,9 @@ CREATE PROCEDURE sp_AddUser(
 	@birthMonth INT,
 	@userCreated INT,
 	@rol INT,
-	@status TINYINT
+	@status TINYINT,
+	@year NVARCHAR(4),
+	@chiefId INT
 
 )
 
@@ -65,7 +67,7 @@ INSERT INTO Users
 	lastName2,birthDay,birthMonth,
 	rol,status,
 	createdBy,createdDate,lastUpdatedBy,
-	lastUpdatedDate
+	lastUpdatedDate, birthYear,chiefId
 				
 )
             
@@ -77,7 +79,7 @@ INSERT INTO Users
 	@lastName2, @birthDay, @birthMonth,
 	@rol, @status,
 	@userCreated, GETDATE(), @userCreated,
-	GETDATE()
+	GETDATE() , @year,@chiefId
 )
 
 END
