@@ -2,41 +2,41 @@
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
--- Author:      Jose Luis Perez Olguin
--- Create date: 10-09-2021
-
--- Description: Update the numberDocument of an specific document
--- this it's used when a quote have just won because other documents are created
--- and they depend each other to fill the data
-
--- ===================================================================================================================================
+-- Author:      Adrian Alardin
+-- Create date: 11-29-2021
+-- Description: We obtain the TC of the day
+-- STORED PROCEDURE NAME:	sp_GetTC
+-- **************************************************************************************************************************************************
+-- =============================================
 -- PARAMETERS:
--- @idDocument: ID of the document to edit
--- @numberDocument: Number of document to use. Must be the number incremented of the last
--- document number founded of that kind
-
 -- ===================================================================================================================================
+-- Returns:
+-- The TC
+-- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
---	Date			Programmer					Revision	    Revision Notes			
+--	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
---  10-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
---  12-02-2021     Adrian Alardin              1.0.0.1         Added the auditory records		
+--	2021-11-29		Adrian Alardin   			1.0.0.0			Initial Revision
+--			                                                    
 -- *****************************************************************************************************************************
+SET
+    ANSI_NULLS ON
+GO
+SET
+    QUOTED_IDENTIFIER ON
+GO
+    CREATE PROCEDURE sp_GetTC
+     AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
+    -- interfering with SELECT statements.
+SET
+    NOCOUNT ON
 
-CREATE PROCEDURE sp_UpdateDocumentNoNumber(
-    @idDocument INT,
-    @numberDocument INT,
-    @modifyBy NVARCHAR (30)
-)
+-- Insert statements for procedure here
+SET
+    LANGUAGE Spanish;
 
-AS BEGIN
-
-UPDATE Documents SET
-    documentNumber = @numberDocument,
-    lastUpdatedBy = @modifyBy,
-    lastUpdatedDate = GETDATE()
-WHERE idDocument = @idDocument
-
+SELECT id, fix, DOF, pays, purchase, sales, saiko, ROUND(saiko, 2) AS test FROM TCP WHERE IDENT_CURRENT('TCP')= id
 END
+GO

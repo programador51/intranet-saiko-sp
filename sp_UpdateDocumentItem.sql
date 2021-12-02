@@ -25,6 +25,7 @@
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
 --  06-09-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
+--  12-02-2021     Adrian Alardin              1.0.0.1         Added the auditory records		
 -- *****************************************************************************************************************************
 
 CREATE PROCEDURE sp_UpdateDocumentItem(
