@@ -101,7 +101,7 @@ JOIN CustomerTypes ON Customers.customerType = CustomerTypes.customerTypeID
 WHERE
 
 (Customers.status = @status OR @status IS NULL) AND
-(Customer_Executive.executiveID = @executive OR @executive IS NULL) AND
+(Customer_Executive.executiveID = @executive) AND
 (Customers.customerType = @type OR @type IS NULL)
                 
 ORDER BY Customers.customerID DESC
