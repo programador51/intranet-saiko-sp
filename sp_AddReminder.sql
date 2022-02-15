@@ -23,7 +23,7 @@
 --                  1: Customer                
 --                  2: Contact                 
 --                  3: Document                 
---                  4: An authorization was aproved or rejected and the customerID = ID                 
+--                  4: An authorization was aproved or rejected and the customerID = ID                                
 -- ===================================================================================================================================
 -- Returns:
 -- If the reminder was added successfully

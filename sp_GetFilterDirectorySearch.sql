@@ -30,6 +30,7 @@
 -- =================================================================================================
 --	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
 --  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--  2022-01-06      Adrian Alardin Iracheta     2.0.0.1         Improvement: It is more maintainable		
 -- *****************************************************************************************************************************
 
 SET ANSI_NULLS ON
@@ -49,74 +50,131 @@ ALTER PROCEDURE [dbo].[sp_GetFilterDirectorySearch](
 
 )
 
-AS BEGIN
+AS 
+BEGIN
 
-SELECT
+DECLARE  @WHERE_CLAUSE NVARCHAR (MAX);
+DECLARE  @SELECT_CLAUSE NVARCHAR (MAX);
+DECLARE  @FROM_CLAUSE NVARCHAR (MAX);
+DECLARE  @JOIN_CLAUSE NVARCHAR (MAX);
+DECLARE  @SP_STATEMENT NVARCHAR (MAX);
+DECLARE @PARAMS NVARCHAR (MAX);
 
-	Customers.customerID AS Cliente_id,
-	Customers.socialReason AS Razon_social,
-	Customers.commercialName AS Nombre_comercial,
-	Customers.shortName AS Nombre_corto,
-	Customers.movil AS Movil_sin_lada,
-	Customers.rfc AS RFC,
-	Customers.email AS Correo,
-	Customers.creditDays AS Dias_credito,
-	Customers.phone AS Telefono_sin_lada,
-	Customers.ladaPhone AS Lada_telefono,
-	Customers.ladaMovil AS Lada_movil,
-	Customers.corporative AS Corporativo,
+-- We declare the variables
+SET @PARAMS= '@type INT,@status TINYINT,@executive INT,@rangeBegin INT,@noRegisters INT,@search VARCHAR (50)'
 
-	CONCAT(SUBSTRING(Users.firstName,0,2),SUBSTRING(Users.lastName1,0,2),SUBSTRING(Users.lastName2,0,2)) AS Ejecutivo_Abreviado,
 
-	CASE WHEN
-		Customers.status = 1 THEN 'Activo'
-		ELSE 'Inactivo'
-	END AS Estatus_Descripcion,
+-- We save the generic SELECT
+SET @SELECT_CLAUSE= 'SELECT
+			Customers.customerID AS Cliente_id,
+			Customers.socialReason AS Razon_social,
+			Customers.commercialName AS Nombre_comercial,
+			Customers.shortName AS Nombre_corto,
+			Customers.movil AS Movil_sin_lada,
+			Customers.rfc AS RFC,
+			Customers.email AS Correo,
+			Customers.creditDays AS Dias_credito,
+			Customers.phone AS Telefono_sin_lada,
+			Customers.ladaPhone AS Lada_telefono,
+			Customers.ladaMovil AS Lada_movil,
+			Customers.corporative AS Corporativo,
 
-	CONCAT(ladaPhone,' ',phone) AS Telefono,
-	CONCAT(ladaMovil,' ',movil) AS Movil,
-	Customers.status AS Estatus_cliente,
-	Customers.customerType AS Customers_Tipo_Cliente,
-	Customer_Executive.customerID,
-	Customer_Executive.executiveID,
-	Customer_Executive.createdBy AS Asociado_por,
-	Customer_Executive.createdDate  AS Asociado_el,
-	Customer_Executive.lastUpdatedBy AS Actualizado_por,
-	Customer_Executive.lastUpdatedDate AS Actualizado_el,
-	Users.firstName,
-	Users.middleName,
-	Users.lastName1,
-	Users.lastName2,
-	CONCAT(firstName,' ',middleName,' ',lastName1,' ',lastName2) AS Ejecutivo,
-	Users.userID AS ID_Ejecutivo,
-	CustomerTypes.customerTypeID AS ID_tipo_cliente,
-	CustomerTypes.description AS Tipo_cliente
-                
-	FROM Customers 
-                
-	JOIN Customer_Executive ON Customers.customerID = Customer_Executive.customerID
-	JOIN Users ON Customer_Executive.executiveID = Users.userID
-	JOIN CustomerTypes on Customers.customerType = CustomerTypes.customerTypeID
+			CONCAT(SUBSTRING(Users.firstName,0,2),SUBSTRING(Users.lastName1,0,2),SUBSTRING(Users.lastName2,0,2)) AS Ejecutivo_Abreviado,
 
-	WHERE
+			CASE WHEN
+				Customers.status = 1 THEN ''Activo''
+				ELSE ''Inactivo''
+			END AS Estatus_Descripcion,
 
-	((Customers.socialReason LIKE '%' + @search + '%') OR
-	(Customers.commercialName LIKE '%' + @search + '%') OR
-	(Customers.shortName LIKE '%' + @search + '%') OR
-	(Users.firstName LIKE '%' + @search + '%') OR
-	(Users.middleName LIKE '%' + @search + '%') OR
-	(Users.lastName1 LIKE '%' + @search + '%') OR
-	(Users.lastName2 LIKE '%' + @search + '%') OR
-	(Customers.movil LIKE '%' + @search + '%') OR
-	(Customers.phone LIKE '%' + @search + '%')) AND
-	(Customers.status = @status OR @status IS NULL) AND
-	(Customer_Executive.executiveID = @executive OR @executive IS NULL) AND
-	(Customers.customerType = @type OR @type IS NULL)
-                
+			CONCAT(ladaPhone,'' '',phone) AS Telefono,
+			CONCAT(ladaMovil,'' '',movil) AS Movil,
+			Customers.status AS Estatus_cliente,
+			Customers.customerType AS Customers_Tipo_Cliente,
+			Customer_Executive.customerID,
+			Customer_Executive.executiveID,
+			Customer_Executive.createdBy AS Asociado_por,
+			Customer_Executive.createdDate  AS Asociado_el,
+			Customer_Executive.lastUpdatedBy AS Actualizado_por,
+			Customer_Executive.lastUpdatedDate AS Actualizado_el,
+			Users.firstName,
+			Users.middleName,
+			Users.lastName1,
+			Users.lastName2,
+			CONCAT(firstName,'' '',middleName,'' '',lastName1,'' '',lastName2) AS Ejecutivo,
+			Users.userID AS ID_Ejecutivo,
+			CustomerTypes.customerTypeID AS ID_tipo_cliente,
+			CustomerTypes.description AS Tipo_cliente';
 
-	ORDER BY Customers.customerID DESC
 
-	OFFSET @rangeBegin ROWS 
-	FETCH NEXT @noRegisters ROWS ONLY
+-- We save the FROM statement
+SET @FROM_CLAUSE = 'FROM Customers ';
+
+-- We save the JOIN statement
+SET @JOIN_CLAUSE='JOIN Customer_Executive ON Customers.customerID = Customer_Executive.customerID
+			JOIN Users ON Customer_Executive.executiveID = Users.userID
+			JOIN CustomerTypes on Customers.customerType = CustomerTypes.customerTypeID ';
+IF(@type=1)
+	BEGIN
+
+		SET @WHERE_CLAUSE='WHERE 
+			((Customers.socialReason LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.commercialName LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.shortName LIKE ''%'' + @search + ''%'' ) OR
+			(Users.firstName LIKE ''%'' + @search + ''%'' ) OR
+			(Users.middleName LIKE ''%'' + @search + ''%'' ) OR
+			(Users.lastName1 LIKE ''%'' + @search + ''%'' ) OR
+			(Users.lastName2 LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.movil LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.phone LIKE ''%'' + @search + ''%'' )) AND
+			(Customers.status = @status OR @status IS NULL) AND
+			(Customer_Executive.executiveID = @executive) AND
+			(Customers.customerType = @type) 
+			ORDER BY Customers.customerID DESC 
+			OFFSET @rangeBegin ROWS 
+			FETCH NEXT @noRegisters ROWS ONLY ';
+	END
+
+	ELSE IF (@type IS NULL) 
+	BEGIN
+		SET @WHERE_CLAUSE= 'WHERE 
+			((Customers.socialReason LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.commercialName LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.shortName LIKE ''%'' + @search + ''%'' ) OR
+			(Users.firstName LIKE ''%'' + @search + ''%'' ) OR
+			(Users.middleName LIKE ''%'' + @search + ''%'' ) OR
+			(Users.lastName1 LIKE ''%'' + @search + ''%'' ) OR
+			(Users.lastName2 LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.movil LIKE ''%'' + @search + ''%'' ) OR
+			(Customers.phone LIKE ''%'' + @search + ''%'' )) AND
+			(Customers.status = @status OR @status IS NULL) AND
+			(Customer_Executive.executiveID = @executive) OR
+			(Customers.customerType = 2 OR Customers.customerType = 5) 
+			ORDER BY Customers.customerType, Customer_Executive.executiveID DESC 
+			OFFSET @rangeBegin ROWS 
+			FETCH NEXT @noRegisters ROWS ONLY ';
+	END
+
+	ELSE
+		BEGIN
+			SET @WHERE_CLAUSE= 'WHERE 
+				((Customers.socialReason LIKE ''%'' + @search + ''%'' ) OR
+				(Customers.commercialName LIKE ''%'' + @search + ''%'' ) OR
+				(Customers.shortName LIKE ''%'' + @search + ''%'' ) OR
+				(Users.firstName LIKE ''%'' + @search + ''%'' ) OR
+				(Users.middleName LIKE ''%'' + @search + ''%'' ) OR
+				(Users.lastName1 LIKE ''%'' + @search + ''%'' ) OR
+				(Users.lastName2 LIKE ''%'' + @search + ''%'' ) OR
+				(Customers.movil LIKE ''%'' + @search + ''%'' ) OR
+				(Customers.phone LIKE ''%'' + @search + ''%'' )) AND
+				(Customers.status = @status OR @status IS NULL) AND
+				(Customers.customerType = @type) 		
+				ORDER BY Customers.customerID  DESC 
+				OFFSET @rangeBegin ROWS  
+				FETCH NEXT @noRegisters ROWS ONLY '
+		END
+
+	SET @SP_STATEMENT= @SELECT_CLAUSE +@FROM_CLAUSE+@JOIN_CLAUSE+ @WHERE_CLAUSE;
+		
+	EXEC SP_EXECUTESQL @SP_STATEMENT,@PARAMS, @type, @status, @executive, @rangeBegin, @noRegisters,@search 
 
 END
