@@ -2,45 +2,40 @@
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
--- Author:      Jose Luis Perez
--- Create date: 07-13-2021
--- Description: Update the customer associated with an executive
--- STORED PROCEDURE NAME:	sp_UpdateAssociatedCustomerToExecutive
+-- Author:      Adrian Alardin
+-- Create date: 12-23-2021
+-- Description: Reverse the amount to pay (residue) and the total acredited amount for the CxC
+-- STORED PROCEDURE NAME:	sp_UpdateReverseCxC
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @idExecutive: The id of the executive to which the customer is associated
--- @pkRow: The primary key of the customer id
--- @lastUpdateBy: The user who updated the record
--- =============================================
--- VARIABLES:
+-- @id: The invoice id
+-- @refund: The refund
+             
 -- ===================================================================================================================================
 -- Returns:
--- @message: The result message of the operation
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
---	2021-07-13		Jose Luis Perez   			1.0.0.0			Initial Revision
---	2021-12-31		Adrian Alardin   			1.0.0.1			It was added the audit records
+--	2021-12-23		Adrian Alardin   			1.0.0.0			Initial Revision
 -- *****************************************************************************************************************************
+SET
+    ANSI_NULLS ON
+GO
+SET
+    QUOTED_IDENTIFIER ON
+GO
+    CREATE PROCEDURE sp_UpdateReverseCxC(
+        @id BIGINT,
+        @refund Decimal (14,4)
 
-CREATE PROCEDURE sp_UpdateAssociatedCustomerToExecutive(
-
-	@idExecutive INT,
-	@pkRow INT,
-	@lastUpdateBy NVARCHAR
-
-)
-
-AS BEGIN
-
-	UPDATE Customer_Executive SET 
-        executiveID = @idExecutive,
-		lastUpdatedBy=@lastUpdateBy,
-		lastUpdatedDate= GETDATE()
-		WHERE customerExecutiveID = @pkRow 
-
+    ) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
+    -- interfering with SELECT statements.
+SET
+    NOCOUNT ON 
+    UPDATE Documents SET amountToPay = amountToPay + dbo.fn_RoundDecimals((totalAcreditedAmount - @refund),2) , totalAcreditedAmount = totalAcreditedAmount - dbo.fn_RoundDecimals((totalAcreditedAmount - @refund),2) WHERE idDocument = @id
 END
+GO

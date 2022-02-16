@@ -2,34 +2,40 @@
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
--- Author:      Jose Luis Perez Olguin
--- Create date: 10-09-2021
--- Description: Update the user password
--- ===================================================================================================================================
+-- Author:      Adrian Alardin
+-- Create date: 12-23-2021
+-- Description: Reverse the accumulated invoice
+-- STORED PROCEDURE NAME:	sp_UpdateReverseInvoice
+-- **************************************************************************************************************************************************
+-- =============================================
 -- PARAMETERS:
--- @password: The new password
--- @userID: The user ID
--- @modifyBy: Last updated by
+-- @id: The invoice id
+-- @refund: The refund
+             
 -- ===================================================================================================================================
+-- Returns:
+-- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
---	Date			Programmer					Revision	    Revision Notes			
+--	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
---  07-13-2021     Jose Luis Perez             1.0.0.0         Documentation and query		
---  12-02-2021     Adrian Alardin              1.0.0.1         Added the auditory records		
+--	2021-12-23		Adrian Alardin   			1.0.0.0			Initial Revision
 -- *****************************************************************************************************************************
-CREATE PROCEDURE sp_UpdatePass(
-	@password NVARCHAR(300),
-	@userID INT,
-	@modifyBy NVARCHAR (30)
-) AS BEGIN
-UPDATE
-	Users
 SET
-	password = @password,
-	lastUpdatedBy = @modifyBy,
-	lastUpdatedDate = GETDATE()
-WHERE
-	userID = @userID
+    ANSI_NULLS ON
+GO
+SET
+    QUOTED_IDENTIFIER ON
+GO
+    CREATE PROCEDURE sp_UpdateReverseInvoice(
+        @id BIGINT,
+        @refund Decimal (14,4)
+
+    ) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
+    -- interfering with SELECT statements.
+SET
+    NOCOUNT ON 
+ UPDATE Documents SET totalAcreditedAmount = dbo.fn_RoundDecimals((totalAcreditedAmount - @refund),2) WHERE idDocument = @id
 END
+GO

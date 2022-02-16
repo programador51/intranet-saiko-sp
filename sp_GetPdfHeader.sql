@@ -44,7 +44,6 @@ BEGIN
     -- Insert statements for procedure here
     -- Insert statements for procedure here
     SET LANGUAGE Spanish;
-                SET LANGUAGE Spanish;
                 SELECT
                 ISNULL(FORMAT(Documents.documentNumber,'0000000'),'0000001') AS documentNumber,
                 DocumentTypes.description AS documentType,

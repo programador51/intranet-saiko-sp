@@ -2,45 +2,38 @@
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
--- Author:      Jose Luis Perez
--- Create date: 07-13-2021
--- Description: Update the customer associated with an executive
--- STORED PROCEDURE NAME:	sp_UpdateAssociatedCustomerToExecutive
+-- Author:      Adrian Alardin
+-- Create date: 15-12-2021
+-- Description: We obtain the total acredited amount from the invoices
+-- STORED PROCEDURE NAME:	sp_GetAcreditedAmount
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @idExecutive: The id of the executive to which the customer is associated
--- @pkRow: The primary key of the customer id
--- @lastUpdateBy: The user who updated the record
--- =============================================
--- VARIABLES:
+-- @invoiceIds - The invoices ids
 -- ===================================================================================================================================
 -- Returns:
--- @message: The result message of the operation
+-- documentId, totalAcreditedAmount
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
---	2021-07-13		Jose Luis Perez   			1.0.0.0			Initial Revision
---	2021-12-31		Adrian Alardin   			1.0.0.1			It was added the audit records
+--	2021-12-15		Adrian Alardin   			1.0.0.0			Initial Revision
 -- *****************************************************************************************************************************
-
-CREATE PROCEDURE sp_UpdateAssociatedCustomerToExecutive(
-
-	@idExecutive INT,
-	@pkRow INT,
-	@lastUpdateBy NVARCHAR
-
-)
-
-AS BEGIN
-
-	UPDATE Customer_Executive SET 
-        executiveID = @idExecutive,
-		lastUpdatedBy=@lastUpdateBy,
-		lastUpdatedDate= GETDATE()
-		WHERE customerExecutiveID = @pkRow 
-
+SET
+    ANSI_NULLS ON
+GO
+SET
+    QUOTED_IDENTIFIER ON
+GO
+    CREATE PROCEDURE sp_GetAcreditedAmount(@invoiceIds VARCHAR(MAX)) AS BEGIN -- SET NOCOUNT ON added to prevent extra result sets from
+    -- interfering with SELECT statements.
+SET
+    NOCOUNT ON -- Insert statements for procedure here
+SET
+    LANGUAGE Spanish;
+    SELECT idDocument,ISNULL(totalAcreditedAmount,0) as totalAcreditedAmount
+FROM Documents WHERE idDocument IN (SELECT value FROM STRING_SPLIT(@invoiceIds,','))
 END
+GO

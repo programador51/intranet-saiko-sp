@@ -23,6 +23,7 @@
 --                  1: Customer                
 --                  2: Contact                 
 --                  3: Document                 
+--                  4: An authorization was aproved or rejected and the customerID = ID                                
 -- ===================================================================================================================================
 -- Returns:
 -- If the reminder was added successfully
@@ -75,6 +76,7 @@ SET
 
 	SET @customerID = CASE 
 						WHEN @reminderFrom=1 THEN @ID
+						WHEN @reminderFrom=4 THEN @ID
 						ELSE NULL
 						END
 	SET @contactID = CASE 

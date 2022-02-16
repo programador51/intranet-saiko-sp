@@ -1,3 +1,67 @@
+-- **************************************************************************************************************************************************
+--	STORED PROCEDURE OVERVIEW INFORMATION
+-- **************************************************************************************************************************************************
+-- =============================================
+-- Author:      Adrian Alardin
+-- Create date: 11-10-2021
+-- Description: Update the customest
+-- STORED PROCEDURE NAME:	sp_UpdateCustomer
+-- **************************************************************************************************************************************************
+-- =============================================
+-- PARAMETERS:
+-- @socialReason: The social reason 
+-- @commercialName: The commertial name
+-- @shortName: The short name
+-- @typeCustomer: The customer type
+-- @value_statusCustomer: Indicates if is active or inactive
+-- @createdBy: The user how update the record
+-- @customerRFC: The customer RFC
+-- @addressCustomer: Customer adress
+-- @streetCustomer: Customer street
+-- @exteriorNumber: Exterior number
+-- @insideNumber: Inside number
+-- @customerColony: Colony
+-- @customerCity: City
+-- @customerState: State
+-- @postalCode: Postal Code
+-- @customerCountry: Country
+-- @lada_phone: Lada phone
+-- @number_phone: Number phone
+-- @lada_movil: Lada movil
+-- @number_movil: Movil number
+-- @emailCustomer: Customer email
+-- @creditDays: Creadit days
+-- @iva: IVA
+-- @referenceDeposit: repository reference
+-- @corporative: The corporative
+-- @executiveAttends: The excuteve how attneds the customer
+-- @mnBank: The MXN bank id
+-- @mnNumberAccount: The number account
+-- @mnNumberKeyCode: The key code
+-- @mnNoAgreement: Agreement
+-- @usdBank: The USD bank id
+-- @usdNumberAccount: The USD number account
+-- @usNumberKeyCode:The USD key code
+-- @usdNoAgreement: The USD number agreement
+-- @idCorporative: The corporative ID
+-- @statusCustomer: The status of the customer
+-- @customerID: The customer id
+-- =============================================
+-- VARIABLES:
+
+-- ===================================================================================================================================
+-- Returns:
+-- @message: The result message of the operation
+-- =============================================
+-- **************************************************************************************************************************************************
+--	REVISION HISTORY/LOG
+-- **************************************************************************************************************************************************
+--	Date			Programmer					Revision	    Revision Notes
+-- =================================================================================================
+--	2021-07-13		Jose Luis Perez   			1.0.0.0			Initial Revision
+--	2021-12-02		Adrian Alardin   			1.0.0.1			Added the auditory records
+-- *****************************************************************************************************************************
+
 CREATE PROCEDURE sp_UpdateCustomer(
 
 	@socialReason NVARCHAR(100),
@@ -82,6 +146,8 @@ UPDATE Customers SET
         noAgreementUS = @usdNoAgreement,
 
         corporative = @idCorporative,
+		lastUpdateBy=@createdBy,
+		lastUpdateDate=GETDATE(),
 
         status = @value_statusCustomer,
 
