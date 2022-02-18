@@ -198,10 +198,10 @@ SET @WHERE_CLAUSE=CASE
 --? ----------------- ↑↑↑ Prepare WHERE AND JSON PATH ↑↑↑ -----------------------
     -- SE CONFIGURA EL SELECT
 SET @SELECT_CLAUSE='SELECT DISTINCT
-    ISNULL(CustomerClient.socialReason,''ND'') AS [client.socialReasonClient],
-    ISNULL(CustomerClient.rfc,''ND'') AS [client.rfcClient],
-    ISNULL(CustomerClient.commercialName,''ND'') AS [client.comertialNameClient],
-    ISNULL(CustomerClient.shortName,''ND'') AS [client.shortNameClient],
+    ISNULL(CustomerClient.socialReason,''ND'') AS [client.socialReason],
+    ISNULL(CustomerClient.rfc,''ND'') AS [client.rfc],
+    ISNULL(CustomerClient.commercialName,''ND'') AS [client.comertialName],
+    ISNULL(CustomerClient.shortName,''ND'') AS [client.shortName],
 
 
     ISNULL(FORMAT(QuoteDoc.documentNumber,''0000000''),''ND'') AS [documents.quote.number],
@@ -239,10 +239,10 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     ISNULL(dbo.fn_FormatCurrency(OdcDoc.totalAmount),''ND'') AS [documents.odc.total],
     
 
-    ISNULL(CustomerProvider.socialReason,''ND'') AS [provider.socialReasonProvider],
-    ISNULL(CustomerProvider.rfc,''ND'') AS [provider.rfcProvider],
-    ISNULL(CustomerProvider.commercialName,''ND'') AS [provider.comertialNameProvider],
-    ISNULL(CustomerProvider.shortName,''ND'') AS [provider.shortNameProvider] '
+    ISNULL(CustomerProvider.socialReason,''ND'') AS [provider.socialReason],
+    ISNULL(CustomerProvider.rfc,''ND'') AS [provider.rfc],
+    ISNULL(CustomerProvider.commercialName,''ND'') AS [provider.comertialName],
+    ISNULL(CustomerProvider.shortName,''ND'') AS [provider.shortName] '
 
 
 --? ----------------- ↓↓↓ Prepare SP and execute ↓↓↓ -----------------------

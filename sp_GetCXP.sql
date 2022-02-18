@@ -54,7 +54,7 @@ BEGIN
         dbo.fn_FormatCurrency(Doc.totalAcreditedAmount) AS acredited
     FROM Documents AS Doc
         LEFT JOIN Currencies ON Doc.idCurrency=Currencies.currencyID
-    WHERE Doc.uuid=@uuid AND Doc.idTypeDocument=4
+    WHERE Doc.uuid=@uuid AND Doc.idTypeDocument=4 AND Doc.idStatus!=23
     ORDER BY Doc.createdDate DESC
 
 

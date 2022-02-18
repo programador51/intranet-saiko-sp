@@ -120,7 +120,7 @@ BEGIN
     DECLARE @OFFSET NVARCHAR(MAX) = 'ORDER BY id DESC OFFSET ' + CONVERT(NVARCHAR,@offsetValue) + ' ROWS FETCH NEXT ' + CONVERT(NVARCHAR,@rowsPerPage) + ' ROWS ONLY;'
 
 
-    SET @SELECT_INVOICE_RECEPTION = 'SELECT LegalDocuments.id , LegalDocuments.socialReason , LegalDocuments.noDocument , dbo.fn_FormatCurrency(LegalDocuments.total) AS total ,LegalDocumentStatus.description,LegalDocuments.idLegalDocumentProvider AS customerId ';
+    SET @SELECT_INVOICE_RECEPTION = 'SELECT LegalDocuments.id , LegalDocuments.socialReason , LegalDocuments.noDocument ,dbo.fn_FormatCurrency(LegalDocuments.import) AS import, dbo.fn_FormatCurrency(LegalDocuments.iva) AS iva, dbo.fn_FormatCurrency(LegalDocuments.total) AS total ,LegalDocumentStatus.description,LegalDocuments.idLegalDocumentProvider AS customerId ';
 
     SET @SELECT_INVOICE_QUERY = @SELECT_INVOICE_RECEPTION + @FROM_CLAUSE + @JOIN_CLAUSE + @WHERE_CLAUSE + @OFFSET
     EXEC SP_EXECUTESQL @SELECT_INVOICE_QUERY,@PARAMS,@querySearch,@pageRequested,@idLegalDocumentStatus
