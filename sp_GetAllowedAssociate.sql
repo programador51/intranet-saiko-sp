@@ -65,8 +65,10 @@ BEGIN
             FROM Customers
 
             WHERE
-                customerType = @customerType OR
-                customerType = 5
+                (customerType = @customerType OR
+                customerType = 5) AND 
+                (customerID IN (SELECT idCustomer FROM Documents WHERE idTypeDocument=5))
+                AND [status]=1
             
             ORDER BY customerID DESC
 
