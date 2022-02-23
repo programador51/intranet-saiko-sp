@@ -58,7 +58,7 @@ SET @pageRequested=1;
 
 --? ----------------- ↓↓↓ Prepare FROM, WHERE and FILTER ↓↓↓ -----------------------
     SET @FROM_CLAUSE='FROM Customers ';
-    IF @search IS NULL 
+    IF (@search IS NULL OR @search=-1) 
         BEGIN
             SET @WHERE_CLAUSE='WHERE (customerType=@customerType OR customerType=5) AND (customerID IN (SELECT idCustomer FROM Documents WHERE idTypeDocument=@documentType)) AND status = 1 ';
         END
@@ -86,19 +86,15 @@ SET @pageRequested=1;
 --? ----------------- ↓↓↓ Prepare SELECT facturas emitidas ↓↓↓ -----------------------.
     SET @SELECT_CLAUSE='SELECT    
     Customers.customerID AS ID,
-    Customers.socialReason AS Razon_social,
-    Customers.commercialName AS Nombre_comercial,
-    Customers.shortName AS Nombre_corto,
-    Customers.ladaPhone,
-    Customers.phone,
-    Customers.ladaMovil,
-    Customers.movil,
+    Customers.socialReason AS socialReason,
+    Customers.commercialName AS comertialName,
+    Customers.shortName AS shortName,
     CASE 
-        WHEN  phone  IS NULL THEN CONCAT(''+'',ladaPhone,phone)
+        WHEN  phone  IS NOT NULL THEN CONCAT(''+'',ladaPhone,phone)
         ELSE ''ND''
     END AS Telefono,
     CASE 
-        WHEN  movil  IS NULL THEN CONCAT(''+'',ladaMovil,movil)
+        WHEN  movil  IS NOT NULL THEN CONCAT(''+'',ladaMovil,movil)
         ELSE ''ND''
     END AS Movil ';
 
