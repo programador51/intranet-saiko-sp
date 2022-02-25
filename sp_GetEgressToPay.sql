@@ -1,3 +1,7 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 -- *******************************************************************************************************************************
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- *******************************************************************************************************************************
@@ -14,8 +18,8 @@
 -- *******************************************************************************************************************************
 -- ===============================================================================================================================
 
-CREATE PROCEDURE sp_GetEgressToPay
-
+ALTER PROCEDURE [dbo].[sp_GetEgressToPay]
+    (@idTypeEgress INT)
 AS
 BEGIN
     SELECT LegalDocuments.acumulated AS [acumulated.number],
@@ -36,5 +40,8 @@ BEGIN
         ON LegalDocumentsAssociations.idConcept = InformativeExpenses.id
         INNER JOIN Currencies
         ON InformativeExpenses.currency = Currencies.currencyID
+    WHERE LegalDocumentsAssociations.idConcept = @idTypeEgress
+        AND LegalDocuments.residue != 0
     FOR JSON PATH, ROOT('expensesToPay'), INCLUDE_NULL_VALUES;
     END
+GO
