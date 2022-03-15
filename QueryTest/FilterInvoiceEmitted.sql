@@ -3,7 +3,7 @@
 --* ----------------- ↓↓↓ Global variables ↓↓↓ -----------------------
 
 DECLARE @executiveId INT;-- ID DEL EJECUTIVO
-DECLARE @documentNumber INT;-- ID DEL EJECUTIVO
+DECLARE @documentNumber INT;-- DOCUMENT NUMBER
 DECLARE @statusId INT;-- ID DEL ESTATUS 
 DECLARE @BeginDate DATETIME;-- FECHA DE INICIO
 DECLARE @EndDate DATETIME;-- FECHA DE FIN
