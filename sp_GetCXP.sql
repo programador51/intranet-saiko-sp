@@ -50,7 +50,7 @@ BEGIN
         CONCAT(Doc.currectFaction,'/',Doc.partialitiesRequested) AS partialities,
         dbo.fn_FormatCurrency(Doc.subTotalAmount)AS import,
         dbo.fn_FormatCurrency(Doc.totalAmount) AS total,
-        dbo.fn_FormatCurrency(Doc.amountToPay) AS residue,
+        dbo.fn_FormatCurrency(Doc.totalAmount - ISNULL(Doc.totalAcreditedAmount,0)) AS residue,
         dbo.fn_FormatCurrency(Doc.totalAcreditedAmount) AS acredited
     FROM Documents AS Doc
         LEFT JOIN Currencies ON Doc.idCurrency=Currencies.currencyID
