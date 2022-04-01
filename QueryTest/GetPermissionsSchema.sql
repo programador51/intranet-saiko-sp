@@ -1,0 +1,1 @@
+SELECT jsonSchema FROM PermissionsSchema WHERE id = (SELECT MAX(id) FROM PermissionsSchema)

@@ -2,52 +2,39 @@
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
--- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
-
--- Description: Create a new rol on the system AND get the id of the rol created
-
+-- Author:      Adrian Alardin
+-- Create date: 03-07-2022
+-- Description: Gets the Invoice emitted status
+-- STORED PROCEDURE NAME:	sp_GetInvoiceEmittedStatus
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
-
 -- ===================================================================================================================================
+-- =============================================
+-- VARIABLES:
+-- ===================================================================================================================================
+-- Returns: The Invoice emitted status
+-- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--	2022-03-07		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 
-CREATE PROCEDURE sp_AddRol(
 
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30),
-	 @identity INT OUTPUT
-
-)
-
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE sp_GetInvoiceEmittedStatus 
 AS BEGIN
 
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, dbo.fn_MexicoLocalTime(GETDATE()), @createdBy,
-        dbo.fn_MexicoLocalTime(GETDATE())
-    );
-            
-    SELECT @identity = SCOPE_IDENTITY()
+    SELECT 
+        id, 
+        description
+    FROM LegalDocumentStatus
+    WHERE idTypeLegalDocumentType=2 AND [status]=1
 
 END
