@@ -52,17 +52,24 @@ BEGIN
                         ELSE  REPLACE(CONVERT(VARCHAR(10),Documents.lastUpdatedDate,6),' ','/')
                 END AS fechaCreacion,
                 CustomerTypes.description AS CustomerType,
-                Customers.socialReason,
+                CONCAT ('RFC: ',Customers.rfc) AS rfc,
+                Customers.socialReason AS socialReason,
+                Customers.rfc,
                 CONCAT (
-                ISNULL(CONCAT('Calle: ',Customers.street),'Calle: '),' ',
-                ISNULL(CONCAT('Numero Exterior: ',Customers.exteriorNumber),'Numero Exterior: '), ' ',
-                ISNULL (CONCAT('Numero Interior: ',Customers.interiorNumber),'Numero Interior: ')
+                    ISNULL(Customers.street,' '),' ',
+                    ISNULL(Customers.exteriorNumber,' '),', ',
+                    ISNULL(Customers.interiorNumber, ' '),', ',
+                    ISNULL(Customers.city,' ')
                 ) AS Calle,
-                CONCAT(
-                ISNULL(CONCAT ('Ciudad: ',Customers.city),'Ciudad: '), ' ',
-                ISNULL(CONCAT ('Estado: ',Customers.polity),'Estado: '), ' ',
-                ISNULL(CONCAT('Pais: ',Customers.country),'Pais: ')
+                CONCAT (
+                    ISNULL(Customers.polity,' '),', ',
+                    ISNULL(Customers.country,' '),', ',
+                    ISNULL (Customers.cp,' ')
                 ) AS Pais,
+                CONCAT(
+                    Contacts.firstName, ' ', Contacts.lastName1,' ',Contacts.lastName2
+                ) AS dirigidoA,
+
                 ISNULL(CONCAT ('Telefono: +',Customers.ladaPhone, ' ', Customers.phone),'Telefono: ') AS phoneNumber,
                 ISNULL (CONCAT('Celular: +',Customers.ladaMovil,' ',Customers.movil),'Celular: ') AS cellNumber,
 				ISNULL(CAST(Documents.idQuotation AS VARCHAR(100)),'ND')AS QuoteID,
@@ -71,7 +78,6 @@ BEGIN
 				ISNULL(CAST(Documents.invoiceMizarNumber AS VARCHAR(100)), 'ND')AS MizarID,
 				ISNULL(CAST(Documents.idOC AS VARCHAR(100)),'ND') AS OcID,
 				ISNULL(CAST (Documents.idContractParent AS VARCHAR(100)),'ND') AS OrigenID,
-                Customers.rfc,
 				CASE 
 					WHEN Contacts.email IS NOT NULL THEN Contacts.email
 					WHEN (Contacts.email IS NULL) AND (Customers.email IS NOT NULL) THEN Customers.email

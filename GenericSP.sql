@@ -2,52 +2,41 @@
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
--- Author:      Jose Luis Perez Olguin
--- Create date: 07-26-2021
-
--- Description: Create a new rol on the system AND get the id of the rol created
-
+-- Author:      Adrian Alardin
+-- Create date: 02-10-2022
+-- Description: 
+-- STORED PROCEDURE NAME:	sp_Name
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @description: Name will have the rol
--- @status: 1 active and 0 inactive
--- @createdBy: Firstname, middlename and lastname1 of the user who created the rol
-
+-- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
+-- =============================================
+-- VARIABLES:
+-- ===================================================================================================================================
+-- Returns: 
+-- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2021-07-22		Iván Díaz   				1.0.0.0			Initial Revision
---  2021-07-26      Jose Luis Perez             1.0.0.1         Documentation and file name update		
+--	2022-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:      Adrian Alardin Iracheta
+-- Create Date: 02/10/2022
+-- Description: sp_Name - Some Notes
+CREATE PROCEDURE sp_Name(
+    @variable INT
+) AS 
+BEGIN
 
-CREATE PROCEDURE sp_AddRol(
-
-	 @description VARCHAR(50),
-	 @status TINYINT,
-	 @createdBy VARCHAR(30),
-	 @identity INT OUTPUT
-
-)
-
-AS BEGIN
-
-	INSERT INTO Roles 
-	(
-		description,status,
-		createdBy,createdDate,lastUpdatedBy,
-		lastUpadatedDate)
-    VALUES 
-	
-	(
-        @description, @status,
-        @createdBy, dbo.fn_MexicoLocalTime(GETDATE()), @createdBy,
-        dbo.fn_MexicoLocalTime(GETDATE())
-    );
-            
-    SELECT @identity = SCOPE_IDENTITY()
+    SET LANGUAGE Spanish;
+    SET NOCOUNT ON
 
 END
