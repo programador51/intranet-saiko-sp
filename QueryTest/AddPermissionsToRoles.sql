@@ -1,7 +1,7 @@
 DECLARE @createdBy NVARCHAR(30) = 'Adrian Alardin Iracheta'
 DECLARE @rolId INT = 28
 DECLARE @status TINYINT = 1
-DECLARE @arrayUuid NVARCHAR(MAX)= '1,2,3,4,5,,6,7,8,9'
+DECLARE @arrayUuid NVARCHAR(MAX)= '200,201,202'
 
 
 BEGIN TRANSACTION
