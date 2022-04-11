@@ -45,7 +45,7 @@ DECLARE @isMod TINYINT;
 
     BEGIN TRY
         BEGIN TRANSACTION @TranName
-        SELECT @isMod= isPermissionMod  FROM Users
+        SELECT @isMod= isPermissionMod  FROM Users WHERE userID=@userID
 
         IF @isMod = 1
             BEGIN
@@ -62,7 +62,7 @@ DECLARE @isMod TINYINT;
                 ELSE 
                     BEGIN 
                         SELECT 
-                            1 AS ErrorOccurred, 
+                            0 AS ErrorOccurred, 
                             'Los permisos del usuario se han actualizado' AS [Message],
                             200 AS CodeNumber
                             COMMIT TRANSACTION @TranName
