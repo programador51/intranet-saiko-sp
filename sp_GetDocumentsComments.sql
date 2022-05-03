@@ -3,26 +3,28 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 04-13-2022
--- Description: Gets the notes and consideration by the document type id
--- STORED PROCEDURE NAME:	sp_GetNotesAndConditionsByDocument
+-- Create date: 05-03-2022
+-- Description: Get the comments sorted by type and by order
+-- STORED PROCEDURE NAME:	sp_GetDocumentsComments
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @idDocType: Document type id
+-- @documentId: The document id
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
--- The list of all the notes 
+-- @ErrorOccurred: Identify if any error occurred
+-- @Message: The reply message
+-- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-04-13		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-05-03		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -30,30 +32,22 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 04/13/2022
--- Description: sp_GetNotesAndConditionsByDocument - Gets the notes and consideration by the document type id
-CREATE PROCEDURE sp_GetNotesAndConditionsByDocument(
-    @idDocType INT
-) AS 
+-- Create Date: 05/03/2022
+-- Description: sp_GetDocumentsComments - Get the comments sorted by type and by order
+CREATE PROCEDURE sp_GetDocumentsComments(
+    @documentId INT
+)
+AS
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    SELECT 
-
-        Notes.id,
-        Notes.content,
-        Notes.currency,
-        CONVERT(BIT,Notes.isDelatable) AS [is.delatable],
-        CONVERT(BIT,Notes.isEditable )AS [is.editable],
-        Notes.type,
-        Notes.uen
-
-    FROM NoteAndCondition AS Notes
-    LEFT JOIN NoteAndConditionToDocType AS DocNoteTypes ON DocNoteTypes.idNoteAndCondition= Notes.id
-
-    WHERE DocNoteTypes.idDocumentType = @idDocType AND Notes.[status]=1
-
-    FOR JSON PATH, ROOT('Notes'), INCLUDE_NULL_VALUES
+    SELECT
+        [comment],
+        [order],
+        commentType
+    FROM DocumentsComments
+    WHERE documentId= @documentId
+    ORDER BY commentType, [order]
 
 END

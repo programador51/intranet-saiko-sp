@@ -2,7 +2,7 @@ SELECT
 
     Notes.id,
     Notes.content,
-    Notes.currency,
+    ISNULL(Notes.currency,'NA'),
     Notes.isDelatable AS [is.delatable],
     Notes.isEditable AS [is.editable],
     Notes.type,
