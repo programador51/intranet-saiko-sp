@@ -3,28 +3,27 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2022
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 05-255-2022
+-- Description:   Try  to cancel de  document by id
+-- STORED PROCEDURE NAME:	sp_CancelDocuments
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @customerRFC: The RFC provider from the legal document
+-- @documentId: Document id
+-- @lastUpdateBy: User who try to cancel the document.
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
--- @ErrorOccurred: Identify if any error occurred
 -- @Message: The reply message
--- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-05-255		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,16 +31,43 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2022
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 05/255/2022
+-- Description: sp_CancelDocuments -  Try  to cancel de  document by id
+CREATE PROCEDURE sp_CancelDocuments(
+   @documentId INT,
+   @lastUpdateBy NVARCHAR(256)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    DECLARE @documentType INT;
 
+    SELECT @documentType= idTypeDocument FROM Documents WHERE idDocument=   @documentId
+
+    DECLARE @Message NVARCHAR(MAX);
+
+    IF @documentType =  1
+        BEGIN  
+            EXEC @Message= sp_CancelQuoteDocument @documentId, @lastUpdateBy
+        END
+    IF @documentType =  3
+        BEGIN  
+            EXEC @Message= sp_CancelODCDocumnet @documentId, @lastUpdateBy
+        END
+    IF @documentType =  2
+        BEGIN  
+            EXEC @Message= sp_CancelOrderDocument @documentId, @lastUpdateBy
+        END
+    IF @documentType =  6
+        BEGIN  
+            EXEC @Message= sp_CancelContractDocument @documentId, @lastUpdateBy
+        END
+    IF @documentType IS NULL
+        BEGIN  
+            EXEC @Message= sp_UpdateCancelInvoice @documentId, @lastUpdateBy
+        END
+SELECT @Message AS [Message]
 END
 
 -- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------

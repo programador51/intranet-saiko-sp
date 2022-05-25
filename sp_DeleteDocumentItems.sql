@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2022
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 04-05-2022
+-- Description: Delete the document items
+-- STORED PROCEDURE NAME:	sp_DeleteDocumentItems
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,7 +24,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-04-05		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,17 +32,18 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2022
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
-) AS 
+-- Create Date: 04/05/2022
+-- Description: sp_DeleteDocumentItems - Delete the document items
+CREATE PROCEDURE sp_DeleteDocumentItems(
+    @documentId INT
+)
+AS
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
 
-END
 
--- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------
--- ----------------- ↑↑↑ END ↑↑↑ -----------------------
+    DELETE FROM DocumentItems WHERE document=@documentId
+
+END 

@@ -3,28 +3,31 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2022
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 05-20-2022
+-- Description: Add log error.
+-- STORED PROCEDURE NAME:	sp_AddLog
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @customerRFC: The RFC provider from the legal document
+-- @createdBy: User who tryy to create the record
+-- @error: Error message
+-- @infoSended: Info that was try to send to the database
+-- @mustBeSyncManually: Indicates if we must syync manually
+-- @provider: The error provider where the errors occurs
+-- @responseReceived: The response recive
+-- @wasAnError: Indicartes if it was an error.
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
--- @ErrorOccurred: Identify if any error occurred
--- @Message: The reply message
--- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-05-20		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,15 +35,41 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2022
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 05/20/2022
+-- Description: sp_AddLog - Add log error
+CREATE PROCEDURE sp_AddLog(
+    @createdBy NVARCHAR(30),
+    @error NVARCHAR(MAX),
+    @infoSended NVARCHAR(MAX),
+    @mustBeSyncManually TINYINT,
+    @provider INT,
+    @responseReceived NVARCHAR(MAX),
+    @wasAnError TINYINT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+
+    INSERT INTO Logs (
+        createdBy,
+        error,
+        infoSended,
+        mustBeSyncManually,
+        [provider],
+        responseReceived,
+        wasAnError
+    )
+
+    VALUES (
+        @createdBy,
+        @error,
+        @infoSended,
+        @mustBeSyncManually,
+        @provider,
+        @responseReceived,
+        @wasAnError
+    )
 
 END
 

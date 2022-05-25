@@ -4,7 +4,7 @@ DECLARE @idCurrency INT = 1;
 DECLARE @tc DECIMAL (14,2)= 20.21;
 DECLARE @expirationDate DATETIME ='2022-12-12';
 DECLARE @reminderDate DATETIME ='2022-12-01';
-DECLARE @idProbability INT = 1
+DECLARE @idProgress INT = 1
 DECLARE @creditDays INT= 30
 DECLARE @subtotal DECIMAL (14,4)= 500.00
 DECLARE @iva DECIMAL (14,4)= 50.00
@@ -14,14 +14,15 @@ DECLARE @idCustomer INT = 63
 DECLARE @idStatus INT = 1
 DECLARE @idExecutive INT = 20
 DECLARE @autorizationFlag INT = 1
-
+DECLARE @generateCXP TINYINT=1
 DECLARE @idPeriocityType INT = 1
 DECLARE @periocityValue INT = 3
+
 
 --* VARIABLES LOCALES
 DECLARE @idDocument INT
 
-DECLARE @tranName NVARCHAR(30) ='addQuote';
+DECLARE @tranName NVARCHAR(30) ='addODC';
 DECLARE @tranName2 NVARCHAR(30) ='addNotes';
 DECLARE @ErrorOccurred TINYINT;
 DECLARE @Message NVARCHAR (256);
@@ -31,46 +32,49 @@ BEGIN TRY
     BEGIN TRANSACTION @tranName
 
     INSERT INTO Documents (
-    idTypeDocument,
-    idCustomer,
-    idExecutive,
-    idContact,
-    idCurrency,
-    protected,
-    expirationDate,
-    reminderDate,
-    idProbability,
-    creditDays,
-    createdBy,
-    lastUpdatedBy,
-    totalAmount,
-    subTotalAmount,
-    ivaAmount,
-    documentNumber,
-    authorizationFlag,
-    createdDate,
-    idStatus
+   idTypeDocument,  
+   idCustomer,
+   createdBy,
+   lastUpdatedBy,
+   idContact,
+   idCurrency,
+   protected,
+   idProgress,
+   creditDays,
+   totalAmount,
+   subTotalAmount,
+   ivaAmount,
+   idStatus,
+   createdDate,
+   lastUpdatedDate,
+   idExecutive,
+   generateCXP,
+   expirationDate,
+   reminderDate,
+   documentNumber
 
     ) VALUES (
-        1,
-        @idCustomer,
-        @idExecutive,
-        @idContact,
-        @idCurrency,
-        @tc,
-        @expirationDate,
-        @reminderDate,
-        @idProbability,
-        @creditDays,
-        @createdBy,
-        @createdBy,
-        @totalAmount,
-        @subtotal,
-        @iva,
-        dbo.fn_NextDocumentNumber(1),
-        @autorizationFlag, -- authorization flag
-        dbo.fn_MexicoLocalTime(GETDATE()),
-        @idStatus
+        3,--
+        @idCustomer, --
+        @createdBy,--
+        @createdBy,--
+        @idContact,--
+        @idCurrency,--
+        @tc,--
+        @idProgress,--?
+        @creditDays,--
+        @totalAmount,--
+        @subtotal,--
+        @iva,--
+        5, --
+        dbo.fn_MexicoLocalTime(GETDATE()),--
+        dbo.fn_MexicoLocalTime(GETDATE()),--
+        @idExecutive,--
+        @generateCXP,--
+        @expirationDate,--
+        @reminderDate,--
+        dbo.fn_NextDocumentNumber(3)--
+
     )
 
     IF (@@ERROR <>0 AND @@ROWCOUNT <= 0)

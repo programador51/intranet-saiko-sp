@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2022
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 05-04-2022
+-- Description: Remove comments associated with a document
+-- STORED PROCEDURE NAME:	sp_DeleteDocumentsComments
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,7 +24,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-05-04		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,17 +32,20 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2022
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 05/04/2022
+-- Description: sp_DeleteDocumentsComments - Remove comments associated with a document
+CREATE PROCEDURE sp_DeleteDocumentsComments(
+    @documentId INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
 
-END
+    DELETE FROM CommentsCopiedTo 
+        WHERE idComment = (SELECT id FROM DocumentsComments WHERE documentId=@documentId)
+    DELETE FROM DocumentsComments 
+        WHERE documentId=@documentId
 
--- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------
--- ----------------- ↑↑↑ END ↑↑↑ -----------------------
+
+END
