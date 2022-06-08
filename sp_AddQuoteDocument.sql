@@ -52,8 +52,7 @@ GO
 -- Description: sp_AddQuoteDocument - Add a quotation type document and if necessary, create the period record
 CREATE PROCEDURE sp_AddQuoteDocument(
     @idContact INT,
-    @idTypeDocument INT,
-    @idCurrency INT,
+    @currencyCode NVARCHAR(3),
     @tc DECIMAL (14,2),
     @expirationDate DATETIME,
     @reminderDate DATETIME,
@@ -72,6 +71,8 @@ CREATE PROCEDURE sp_AddQuoteDocument(
     @endDate DATETIME
 ) AS 
 BEGIN
+    DECLARE @idCurrency INT;    
+    exec @idCurrency = sp_GetIdCurrencyCode @currencyCode = @currencyCode;
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
@@ -108,7 +109,7 @@ BEGIN
         idStatus
 
         ) VALUES (
-            @idTypeDocument,
+            1,
             @idCustomer,
             @idExecutive,
             @idContact,
@@ -123,7 +124,7 @@ BEGIN
             @totalAmount,
             @subtotal,
             @iva,
-            dbo.fn_NextDocumentNumber(@idTypeDocument),
+            dbo.fn_NextDocumentNumber(1),
             @autorizationFlag, -- authorization flag
             dbo.fn_MexicoLocalTime(GETDATE()),
             1 -- Estatus de la cotización 'Abierta'

@@ -3,13 +3,14 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 04-20-2022
--- Description: Add a contract type document and if necessary, create the period record
--- STORED PROCEDURE NAME:	sp_AddContractDocument
+-- Create date: 05-27-2022
+-- Description: Updates the contract document
+-- STORED PROCEDURE NAME:	sp_UpdateContractDocument
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
 -- @idContact: The contact id
+-- @idTypeDocument: The document type id
 -- @idCurrency: Currency id 
 -- @tc: Exchange rate
 -- @expirationDate: Expiration date
@@ -25,7 +26,6 @@
 -- @autorizationFlag: Indicates if the document requires authorization before any process (1 = Does not require authorization | 2 = Requires authorization | 3 = In authorization process | 4 = Authorized)
 -- @idPeriocityType: The periocity type the document belongs
 -- @periocityValue: The current month or the number of days
--- @contractKey: The contract key value.
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
@@ -40,8 +40,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-04-20		Adrian Alardin   			1.0.0.0			Initial Revision	
---	2022-05-27		Adrian Alardin   			1.0.0.1			Se corregieron detalles minimos de sp	
+--	2022-05-27		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -49,9 +48,10 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 04/20/2022
--- Description: sp_AddContractDocument - Add a contract type document and if necessary, create the period record
-CREATE PROCEDURE sp_AddContractDocument(
+-- Create Date: 05/27/2022
+-- Description: sp_UpdateContractDocument - Updates the contract document
+CREATE PROCEDURE sp_UpdateContractDocument(
+    @idDocument INT,
     @idContact INT,
     @currencyCode NVARCHAR(3),
     @tc DECIMAL (14,2),
@@ -67,15 +67,15 @@ CREATE PROCEDURE sp_AddContractDocument(
     @autorizationFlag INT,
     @idPeriocityType INT,
     @periocityValue INT,
-    @contractKey NVARCHAR (50)
+    @contractKey NVARCHAR (50),
+    @startDate DATETIME,
+    @endDate DATETIME
 ) AS 
 BEGIN
+    DECLARE @idCurrency INT;
+    exec @idCurrency = sp_GetIdCurrencyCode @currencyCode = @currencyCode;
 
-    SET LANGUAGE Spanish;
-    SET NOCOUNT ON
-
-    DECLARE @idDocument INT
-    DECLARE @tranName NVARCHAR(30) ='addContract';
+    DECLARE @tranName NVARCHAR(30) ='updateContract';
     DECLARE @tranName2 NVARCHAR(30) ='addNotes';
     DECLARE @ErrorOccurred TINYINT;
     DECLARE @Message NVARCHAR (256);
@@ -83,52 +83,21 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRANSACTION @tranName
-        DECLARE @idCurrency INT;
-        EXEC @idCurrency = sp_GetIdCurrencyCode @currencyCode = @currencyCode;
 
-        INSERT INTO Documents (
-        idTypeDocument,
-        idCustomer,
-        idExecutive,
-        idContact,
-        idCurrency,
-        protected,
-        expirationDate,
-        reminderDate,
-        creditDays,
-        createdBy,
-        lastUpdatedBy,
-        totalAmount,
-        subTotalAmount,
-        ivaAmount,
-        documentNumber,
-        authorizationFlag,
-        createdDate,
-        idStatus,
-        [contract]
-
-        ) VALUES (
-            6,--! Tipo contrato
-            @idCustomer,
-            @idExecutive,
-            @idContact,
-            @idCurrency,--? ya se corregio
-            @tc,
-            @expirationDate,
-            @reminderDate,
-            @creditDays,
-            @createdBy,
-            @createdBy,
-            @totalAmount,
-            @subtotal,
-            @iva,
-            dbo.fn_NextDocumentNumber(6),-- !! Tipo contrato
-            @autorizationFlag, -- authorization flag
-            dbo.fn_MexicoLocalTime(GETDATE()),
-            13, -- Estatus del contrato
-            @contractKey
-        )
-
+        UPDATE Documents SET
+        idCustomer= @idCustomer,
+        idContact= @idContact,
+        subTotalAmount= @subtotal,
+        ivaAmount= @iva,
+        totalAmount= @totalAmount,
+        expirationDate= @expirationDate,
+        reminderDate= @reminderDate,
+        idCurrency= @idCurrency,
+        protected= @tc,
+        [contract]= @contractKey,
+        lastUpdatedDate= dbo.fn_MexicoLocalTime(GETDATE()),
+        lastUpdatedBy= @createdBy
+        WHERE documentId =@documentId
         IF (@@ERROR <>0 AND @@ROWCOUNT <= 0)
             BEGIN
                 SET @ErrorOccurred= 1 -- Significa que fallo
@@ -141,20 +110,24 @@ BEGIN
                 IF (@idPeriocityType IS NOT NULL AND @periocityValue IS NOT NULL)
                     BEGIN
                         BEGIN TRANSACTION @tranName2
-                        SELECT @idDocument= SCOPE_IDENTITY()
+                        DELETE FROM Periocity WHERE idDocument=@idDocument;
                         INSERT INTO Periocity (
                             createdBy,
                             idDocument,
                             idPeriocityType,
                             lastUpdatedBy,
-                            [value]
+                            [value],
+                            startDate,
+                            endDate
                         )
                         VALUES (
                             @createdBy,
                             @idDocument,
                             @idPeriocityType,
                             @createdBy,
-                            @periocityValue
+                            @periocityValue,
+                            @startDate,
+                            @endDate
                         )
                         IF (@@ERROR <>0 AND @@ROWCOUNT <= 0)
                             BEGIN
@@ -177,7 +150,7 @@ BEGIN
                 SET @CodeNumber= 200
                 COMMIT TRANSACTION @tranName2
             END
-    SELECT @ErrorOccurred AS ErrorOccurred, @Message AS [Message], @CodeNumber AS CodeNumber
+    -- SELECT @ErrorOccurred AS ErrorOccurred, @Message AS [Message], @CodeNumber AS CodeNumber
     END TRY
 
     BEGIN CATCH

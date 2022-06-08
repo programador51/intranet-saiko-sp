@@ -53,7 +53,7 @@ GO
 -- Description: sp_AddODCDocument - Some Notes
 CREATE PROCEDURE sp_AddODCDocument(
     @idContact INT,
-    @idCurrency INT,
+    @currencyCode NVARCHAR(3),
     @tc DECIMAL (14,2),
     @expirationDate DATETIME,
     @reminderDate DATETIME,
@@ -85,6 +85,8 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRANSACTION @tranName
+        DECLARE @idCurrency INT;
+        EXEC @idCurrency = sp_GetIdCurrencyCode @currencyCode = @currencyCode;
 
         INSERT INTO Documents (
             idTypeDocument,  

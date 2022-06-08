@@ -3,27 +3,25 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 05-255-2022
--- Description:   Try  to cancel de  document by id
--- STORED PROCEDURE NAME:	sp_CancelDocuments
+-- Create date: 06-07-2022
+-- Description: Gets the pdf data
+-- STORED PROCEDURE NAME:	sp_GetPdfData
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @documentId: Document id
--- @lastUpdateBy: User who try to cancel the document.
+-- @documentId: The document id
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
--- @Message: The reply message
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-05-255		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-06-07		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -31,43 +29,21 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 05/255/2022
--- Description: sp_CancelDocuments -  Try  to cancel de  document by id
-CREATE PROCEDURE sp_CancelDocuments(
-   @documentId INT,
-   @lastUpdateBy NVARCHAR(256)
+-- Create Date: 06/07/2022
+-- Description: sp_GetPdfData - Gets the pdf data
+CREATE PROCEDURE sp_GetPdfData(
+    @documentId INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    DECLARE @documentType INT;
 
-    SELECT @documentType= idTypeDocument FROM Documents WHERE idDocument=   @documentId
+    EXEC sp_GetDocumentsComments @documentId
+    EXEC sp_GetDocumentItemsV2 @documentId
+    EXEC sp_GetPdfHeader @documentId
+    SELECT [value] FROM Parameters WHERE parameter BETWEEN 5 AND 9
 
-    DECLARE @Message NVARCHAR(MAX);
-
-    IF @documentType =  1
-        BEGIN  
-            EXEC  sp_CancelQuoteDocument @documentId, @lastUpdateBy
-        END
-    IF @documentType =  3
-        BEGIN  
-            EXEC  sp_CancelODCDocumnet @documentId, @lastUpdateBy
-        END
-    IF @documentType =  2
-        BEGIN  
-            EXEC  sp_CancelOrderDocument @documentId, @lastUpdateBy
-        END
-    IF @documentType =  6
-        BEGIN  
-            EXEC  sp_CancelContractDocument @documentId, @lastUpdateBy
-        END
-    IF @documentType IS NULL
-        BEGIN  
-            EXEC  sp_UpdateCancelInvoice @documentId, @lastUpdateBy
-        END
-SELECT @Message AS [Message]
 END
 
 -- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------
