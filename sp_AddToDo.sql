@@ -3,7 +3,7 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2022
+-- Create date: 06-13-2022
 -- Description: Adds a ToDo
 -- STORED PROCEDURE NAME:	sp_AddToDo
 -- **************************************************************************************************************************************************
@@ -23,7 +23,8 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-06-13		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-06-15		Adrian Alardin   			1.0.0.1			Added customer id property	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -43,7 +44,9 @@ CREATE PROCEDURE sp_AddToDo(
     @reminderDate INT,
     @tagDescription INT,
     @title NVARCHAR(128),
-    @todoNote NVARCHAR(256)
+    @todoNote NVARCHAR(256),
+    @customerId INT,
+    @parent INT
 ) AS 
 BEGIN
 
@@ -56,38 +59,76 @@ BEGIN
     BEGIN TRY
 
         BEGIN TRANSACTION @tranName
+
         IF (@idTag=-1)
             BEGIN
             -- it measn the tag is new
             EXEC @idTag= sp_AddTags @createdBy,@tagDescription,@executiveWhoCreatedId, @idSection
             END
-
-            INSERT INTO ToDo (
-            atentionDate,
-            createdBy,
-            executiveWhoCreatedId,
-            fromId,
-            idSection,
-            idTag,
-            lastUpdateBy,
-            reminderDate,
-            tagDescription,
-            title,
-            toDoNote
-        )
-        VALUES (
-            @atentionDate,
-            @createdBy,
-            @executiveWhoCreatedId,
-            @fromId,
-            @idSection,
-            @idTag,
-            @createdBy,
-            @reminderDate,
-            @tagDescription,
-            @title,
-            @todoNote
-        )
+        IF (@parent IS NULL)
+            BEGIN
+                INSERT INTO ToDo (
+                    atentionDate,
+                    createdBy,
+                    executiveWhoCreatedId,
+                    fromId,
+                    idSection,
+                    idTag,
+                    lastUpdateBy,
+                    reminderDate,
+                    tagDescription,
+                    title,
+                    toDoNote,
+                    customerId
+                    )
+                VALUES (
+                    @atentionDate,
+                    @createdBy,
+                    @executiveWhoCreatedId,
+                    @fromId,
+                    @idSection,
+                    @idTag,
+                    @createdBy,
+                    @reminderDate,
+                    @tagDescription,
+                    @title,
+                    @todoNote,
+                    @customerId
+                )
+            END
+        ELSE 
+            BEGIN
+                INSERT INTO ToDo (
+                        atentionDate,
+                        createdBy,
+                        executiveWhoCreatedId,
+                        fromId,
+                        idSection,
+                        idTag,
+                        lastUpdateBy,
+                        reminderDate,
+                        tagDescription,
+                        title,
+                        toDoNote,
+                        customerId,
+                        parent
+                        )
+                    VALUES (
+                        @atentionDate,
+                        @createdBy,
+                        @executiveWhoCreatedId,
+                        @fromId,
+                        @idSection,
+                        @idTag,
+                        @createdBy,
+                        @reminderDate,
+                        @tagDescription,
+                        @title,
+                        @todoNote,
+                        @customerId,
+                        @parent
+                    )
+            END
 
     END TRY
 
