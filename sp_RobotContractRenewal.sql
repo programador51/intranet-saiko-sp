@@ -86,18 +86,22 @@ BEGIN
 
     DECLARE @todayDate DATETIME = dbo.fn_MexicoLocalTime(GETDATE());
     DECLARE @newExpirationDate DATETIME = DATEADD(DAY,@expirationDateParam,@todayDate);
-
     DECLARE @tranName NVARCHAR(30)= 'renewalsContract';
+    DECLARE @lastDocumentNumer INT = dbo.fn_NextDocumentNumber(1)-1;
+    DECLARE @discount DECIMAL(14,4)=0
+    DECLARE @0 DECIMAL(14,4)=0
+    DECLARE @currentTc DECIMAL(14,4);
 
-    DECLARE @lastDocumentNumer INT = dbo.fn_NextDocumentNumber(1);
+    SELECT TOP 1 @currentTc= saiko FROM TCP ORDER BY id DESC
 --? ----------------- ↑↑↑ DECLARACION DE VARIBALES ↑↑↑ -----------------------
 
 --* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
 --? ----------------- ↓↓↓ CREACION DE TODAS LAS TABLAS TEMPORALES ↓↓↓ --------------------------------------------------------
-    -- + ----------------- ↓↓↓ TABLA TEMPORAL PARA GUARDAR LAS NUEVAS COTIZACIONES (CONTRATOS) ↓↓↓ -----------------------
-    BEGIN TRY
+BEGIN TRY   
     BEGIN TRANSACTION @tranName
+
+    -- + ----------------- ↓↓↓ TABLA TEMPORAL PARA GUARDAR LAS NUEVAS COTIZACIONES (CONTRATOS) ↓↓↓ -----------------------
         CREATE TABLE #TempCotizaciones (
             id INT PRIMARY KEY NOT NULL IDENTITY (1,1), --/+  ID del registro autoincrementable.
             currentDocumentId INT NOT NULL,--/+ Id del documento actual segun el filtro (id del contrato)
@@ -122,13 +126,17 @@ BEGIN
             authorizationFlag INT,--/+ Bandera de autorizacion para la nueva cotización.
             createdDate DATETIME,--/+ Fecha de creacion del registro
             idStatus INT,--/+ Id del estatus de la nueva cotización.
-            previusQuoteStatus INT--/+ Id del estatus de la anterior cotización.
+            previusQuoteStatus INT,--/+ Id del estatus de la anterior cotización.
+            countMXN INT DEFAULT 0, --/+ Cantidad de partidas en MXN.
+            countUSD INT DEFAULT 0, --/+ Cantidad de partidas en USD.
+            countInactiveItems INT DEFAULT 0 --/+ Cantidad de productos inactivos.
         );
     -- + ----------------- ↑↑↑ TABLA TEMPORAL PARA GUARDAR LAS NUEVAS COTIZACIONES (CONTRATOS) ↑↑↑ -----------------------
 
     -- + ----------------- ↓↓↓ TABLA TEMPORAL DE LAS PARTIDAS DE LA NUEVA COTIZACION (PARTIDAS DEL CONTRATO) ↓↓↓ -----------------------
     CREATE TABLE #TemDocumentItems (
         id INT PRIMARY KEY NOT NULL IDENTITY(1,1),
+        [description] NVARCHAR(100),
         currentDocumentId INT NOT NULL,
         newDocumentId INT,
         unit_price DECIMAL(14,4) NOT NULL,
@@ -233,8 +241,6 @@ BEGIN
 --? ----------------- ↑↑↑ CREACION DE TODAS LAS TABLAS TEMPORALES ↑↑↑ -------------------------------------------------------------------------------
 
 --* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-
-
 --? ----------------- ↓↓↓ INSERCION DE TODAS LAS TABLAS TEMPORALES  ↓↓↓ -----------------------
 
     -- + ----------------- ↓↓↓ INSERCIÓN DE LAS COTIZACIONES TEMPORALES (CONTRATOS) ↓↓↓ -----------------------
@@ -253,9 +259,9 @@ BEGIN
             creditDays,
             createdBy,
             lastUpdatedBy,
-            totalAmount,
-            subTotalAmount,
-            ivaAmount,
+            totalAmount, --SUMA DE TODOS LOS SUBTOTALES DE LAS PARTIDAS
+            subTotalAmount, -- SUMA DE TODOS LOS IMPORTES DE LAS PARTIDAS
+            ivaAmount,-- SUMA DE TODOS LOS IVAS DE LAS PARTIDAS
             documentNumber,
             authorizationFlag,
             createdDate,
@@ -287,6 +293,7 @@ BEGIN
                 @todayDate, -- New created Date
                 1, -- significa que explicitamente le decimos que la nueva cotizacion sera 'Abierta'
                 quoteDocument.idStatus
+                
             FROM Documents AS contractDocument 
             LEFT JOIN Documents AS quoteDocument ON quoteDocument.idDocument= contractDocument.idQuotation
             WHERE 
@@ -301,89 +308,227 @@ BEGIN
     -- + ----------------- ↑↑↑ INSERCIÓN DE LAS COTIZACIONES TEMPORALES (CONTRATOS) ↑↑↑ -----------------------
     --- ↓ Apartir de aquí, todas las inserciones siguientes dependen de la de cotizaciones temporales  ↓
 
+    -- + ----------------- ↓↓↓ ACTUALIZAR EL CONTADOR DE MXN ↓↓↓ -----------------------
+
+    UPDATE #TempCotizaciones SET
+        countMXN= (SELECT COUNT(*) FROM  DocumentItems AS docItems
+        LEFT JOIN Catalogue AS catalogo ON catalogo.id_code=docItems.idCatalogue
+         WHERE docItems.document=#TempCotizaciones.currentDocumentId AND catalogo.currency=1)
+
+    -- + ----------------- ↑↑↑ ACTUALIZAR EL CONTADOR DE MXN ↑↑↑ -----------------------
+
+    -- + ----------------- ↓↓↓ ACTUALIZAR EL CONTADOR DE USD ↓↓↓ -----------------------
+
+    UPDATE #TempCotizaciones SET
+        countUSD= (SELECT COUNT(*) FROM  DocumentItems AS docItems
+        LEFT JOIN Catalogue AS catalogo ON catalogo.id_code=docItems.idCatalogue
+         WHERE docItems.document=#TempCotizaciones.currentDocumentId AND catalogo.currency=2)
+
+    -- + ----------------- ↑↑↑ ACTUALIZAR EL CONTADOR DE USD ↑↑↑ -----------------------
+
+    -- + ----------------- ↓↓↓ ACTUALIZAR LA MONEDA DEL DOCUMENTO A MXN SEGUN EL COUNTMXN ↓↓↓ -----------------------
+        UPDATE #TempCotizaciones SET 
+            idCurrency= 1
+        WHERE countMXN >0 AND countUSD=0
+
+    -- + ----------------- ↑↑↑ ACTUALIZAR LA MONEDA DEL DOCUMENTO A MXN SEGUN EL COUNTMXN ↑↑↑ -----------------------
+
+
+    -- + ----------------- ↓↓↓ ACTUALIZAR LA MONEDA DEL DOCUMENTO A USD SEGUN EL COUNTUSD ↓↓↓ -----------------------
+        UPDATE #TempCotizaciones SET 
+            idCurrency= 2
+        WHERE countUSD >0 AND countMXN=0
+
+    -- + ----------------- ↑↑↑ ACTUALIZAR LA MONEDA DEL DOCUMENTO A USD SEGUN EL COUNTUSD ↑↑↑ -----------------------
+    
+    -- + ----------------- ↓↓↓ ACTUALIZAR EL CONTADOR DE LOS PRODUCTOS INACTIVOS ↓↓↓ -----------------------
+         UPDATE #TempCotizaciones SET 
+          countInactiveItems= (
+            SELECT 
+                COUNT(*) 
+            FROM DocumentItems 
+            LEFT JOIN Catalogue AS catalogo ON catalogo.id_code=DocumentItems.idCatalogue
+            WHERE catalogo.[status]=0 AND tempDocument.currentDocumentId=documentItems.document
+          )
+        FROM #TempCotizaciones AS tempDocument
+        LEFT JOIN DocumentItems AS documentItems ON documentItems.document=tempDocument.currentDocumentId
+        WHERE tempDocument.currentDocumentId=documentItems.document
+
+    -- + ----------------- ↑↑↑ ACTUALIZAR EL CONTADOR DE LOS PRODUCTOS INACTIVOS ↑↑↑ -----------------------
+
+
+    
+
     -- + ----------------- ↓↓↓ INSERCION DE LAS PARTIDAS TEMPORALES ↓↓↓ -----------------------
         /* Inserta las partidas a la tabla temporal que cumplan con la condicion de que el id del documento actual 
         (tabla de cotizacion temporal) considan con los de la tabla de DocumentsItems
         */
         INSERT INTO #TemDocumentItems (
-        currentDocumentId,
-        unit_price,
-        unit_cost,
-        idCatalogue,
-        quantity,
-        discount,
-        totalImport,
-        [order],
-        createdBy,
-        lastUpdateBy,
-        createdDate,
-        lastUpdateDate,
-        ivaPercentage,
-        [status],
-        iva,
-        subTotal,
-        unitSellingPrice,
-        unitPriceBeforeExchange,
-        unitCostBeforeExchange,
-        ivaBeforeExchange,
-        subTotalBeforeExchange,
-        unitSellingPriceBeforeExchange,
-        calculationCostDiscount,
-        calculationCostImport,
-        calculationCostIva,
-        calculationCostSell,
-        calculationCostSubtotal,
-        calculationCostUnitary,
-        calculationPriceDiscount,
-        calculationPriceImport,
-        calculationPriceIva,
-        calculationPriceSell,
-        calculationPriceSubtotal,
-        calculationPriceUnitary,
-        discountPercentage,
-        utility
+        currentDocumentId,-- ID_DOCUMENTO
+        [description],-- DESCRIPCION
+        unit_price,-- PRECIO_UNITARIO
+        unit_cost,-- COSTO_UNITARIO
+        idCatalogue, -- ID_CATALOGO
+        quantity, -- CANTIDAD
+        discount,-- DESCUENTO
+        totalImport,-- IMPORTE_TOTAL
+        [order],-- ORDEN
+        createdBy,--CREATED_BY
+        lastUpdateBy,-- LAST_UPDATE_BY
+        createdDate,-- CREATED_DATE
+        lastUpdateDate,-- LAST_UPDATE_DATE
+        ivaPercentage,-- PORCENTAJE_IVA
+        [status],-- ESTATUS
+        iva,-- IVA
+        subTotal,-- SUB_TOTAL
+        unitSellingPrice,-- PRECIO_UNITARIO_VENTA
+        unitPriceBeforeExchange,-- PRECIO_UNITARIO_ANTES_CAMBIO
+        unitCostBeforeExchange,-- COSTO_UNITARIO_ANTES_CAMBIO
+        ivaBeforeExchange,-- IVA_ANTES_CAMBIO
+        subTotalBeforeExchange,-- SUB_TOTAL_ANTES_CAMBIO
+        unitSellingPriceBeforeExchange,-- PRECIO_UNITARIO_VENTA_ANTES_CAMBIO
+        calculationCostDiscount,-- CALCULAR_COSTO_DESCUENTO
+        calculationCostImport,--CALCULAR_IMPORTE_COSTO
+        calculationCostIva,--CALCULAR_COSTO_IVA
+        calculationCostSell,--CALCULAR_COSTO_VENTA
+        calculationCostSubtotal,--CALCULAR_COSTO_SUBTOTAL
+        calculationCostUnitary,--CALCULAR_COSTO_UNITARIO
+        calculationPriceDiscount,--CALCULAR_PRECIO_DESCUENTO
+        calculationPriceImport,--CALCULAR_PRECIO_IMPORTE
+        calculationPriceIva,--CALCULAR_PRECIO_IVA
+        calculationPriceSell,--CALCULAR_PRECIO_VENTA
+        calculationPriceSubtotal,--CALCULAR_PRECIO_SUBTOTAL
+        calculationPriceUnitary,--CALCULAR_PRECIO_UNITARIO
+        discountPercentage,--DESCUENTO_PORCENTAJE
+        utility--UTILIDADES
     )
         SELECT 
-            docItems.document,
-            docItems.unit_price,
-            docItems.unit_cost,
-            docItems.idCatalogue,
-            docItems.quantity,
-            docItems.discount,
-            docItems.totalImport,
-            docItems.[order],
-            docItems.createdBy,
-            docItems.lastUpdatedBy,
-            docItems.createdDate,
-            docItems.lastUpdatedDate,
-            docItems.ivaPercentage,
-            docItems.[status],
-            docItems.iva,
-            docItems.subTotal,
-            docItems.unitSellingPrice,
-            docItems.unitPriceBeforeExchange,
-            docItems.unitCostBeforeExchange,
-            docItems.ivaBeforeExchange,
-            docItems.subTotalBeforeExchange,
-            docItems.unitSellingPriceBeforeExchange,
-            docItems.calculationCostDiscount,
-            docItems.calculationCostImport,
-            docItems.calculationCostIva,
-            docItems.calculationCostSell,
-            docItems.calculationCostSubtotal,
-            docItems.calculationCostUnitary,
-            docItems.calculationPriceDiscount,
-            docItems.calculationPriceImport,
-            docItems.calculationPriceIva,
-            docItems.calculationPriceSell,
-            docItems.calculationPriceSubtotal,
-            docItems.calculationPriceUnitary,
-            docItems.discountPercentage,
-            docItems.utility
+            docItems.document, -- ID_DOCUMENTO
+            docItems.[description], -- DESCRIPCION
+            catalogo.unit_price,-- PRECIO_UNITARIO
+            catalogo.unit_cost,-- COSTO_UNITARIO
+            docItems.idCatalogue, --ID_CATALOGO
+            docItems.quantity,--CANTIDAD
+            @discount,-- DESCUENTO
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND((catalogo.unit_price*quantity),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND((catalogo.unit_price*quantity)*@currentTc,1))
+                ELSE
+                    (ROUND((catalogo.unit_price*quantity)/@currentTc,1))
+            END,--IMPORTE_TOTAL,--IMPORTE_TOTAL
+            docItems.[order],--ORDEN
+            docItems.createdBy,--CREATED_BY
+            docItems.lastUpdatedBy,--LAST_UPDATE_BY
+            @todayDate,--CREATED_DATE
+            @todayDate,--LAST_UPDATE_DATE
+            catalogo.iva,--PORCENTAJE_IVA
+            docItems.[status],-- ESTATUS
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND((catalogo.unit_price*quantity*catalogo.iva/100),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND(((catalogo.unit_price*quantity*catalogo.iva/100)*@currentTc),1) )
+                ELSE
+                    (ROUND(((catalogo.unit_price*quantity*catalogo.iva/100)/@currentTc),1) )
+            END,--IVA
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND(((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100)),1))
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND((((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100))* @currentTc),1) )
+                ELSE
+                    (ROUND((((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100))/ @currentTc) ,1))
+            END,--  SUB_TOTAL
+            @0,--PRECIO_UNITARIO_VENTA
+            @0,--PRECIO_UNITARIO_ANTES_CAMBIO
+            @0,--COSTO_UNITARIO_ANTES_CAMBIO
+            @0,--IVA_ANTES_CAMBIO
+            @0,--SUB_TOTAL_ANTES_CAMBIO
+            @0,--PRECIO_UNITARIO_VENTA_ANTES_CAMBIO
+            @0,--CALCULAR_COSTO_DESCUENTO
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND((catalogo.unit_cost*quantity),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND(((catalogo.unit_cost*quantity)*@currentTc),1))
+                ELSE
+                    (ROUND(((catalogo.unit_cost*quantity)/@currentTc),1))
+            END,--CALCULAR_IMPORTE_COSTO
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND((catalogo.unit_cost*quantity*catalogo.iva/100),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND(((catalogo.unit_cost*quantity*catalogo.iva/100)*@currentTc),1) )
+                ELSE
+                    (ROUND(((catalogo.unit_cost*quantity*catalogo.iva/100)/@currentTc),1) )
+            END, -- CALCULAR_COSTO_IVA  
+            catalogo.unit_cost,-- CALCULAR_COSTO_VENTA
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND((catalogo.unit_cost*docItems.quantity)+(catalogo.unit_cost*docItems.quantity*catalogo.iva/100),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND((((catalogo.unit_cost*docItems.quantity)+(catalogo.unit_cost*docItems.quantity*catalogo.iva/100))* @currentTc),1) )
+                ELSE
+                    (ROUND((((catalogo.unit_cost*docItems.quantity)+(catalogo.unit_cost*docItems.quantity*catalogo.iva/100))/ @currentTc) ,1))
+            END, -- CALCULAR_COSTO_SUBTOTAL (costo*cantidad)+ (costo*cantidad*iva)
+            catalogo.unit_cost,-- CALCULAR_COSTO_UNITARIO
+            @0,--CALCULAR_PRECIO_DESCUENTO
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND(((catalogo.unit_price*quantity) + (catalogo.unit_price*quantity*catalogo.iva/100)),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND((((catalogo.unit_price*quantity) + (catalogo.unit_price*quantity*catalogo.iva/100))*@currentTc),1))
+                ELSE
+                    (ROUND((((catalogo.unit_price*quantity) + (catalogo.unit_price*quantity*catalogo.iva/100))/@currentTc),1))
+            END,-- CALCULAR_PRECIO_IMPORTE
+             CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND((catalogo.unit_price*quantity*catalogo.iva/100),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND(((catalogo.unit_price*quantity*catalogo.iva/100)*@currentTc),1) )
+                ELSE
+                    (ROUND(((catalogo.unit_price*quantity*catalogo.iva/100)/@currentTc),1) )
+            END,-- CALCULAR_PRECIO_IVA
+            catalogo.unit_price,-- CALCULAR_PRECIO_VENTA
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND(((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100)),1) )
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND((((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100))* @currentTc),1) )
+                ELSE
+                    (ROUND((((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100))/ @currentTc ),1))
+            END,-- CALCULAR_PRECIO_SUBTOTAL
+            catalogo.unit_price, -- CALCULAR_PRECIO_UNITARIO
+            @0,--DESCUENTO_PORCENTAJE
+            CASE 
+                WHEN tempCotizacion.idCurrency= catalogo.currency THEN 
+                    (ROUND(((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100)),1) - ROUND(((catalogo.unit_cost*docItems.quantity)+(catalogo.unit_cost*docItems.quantity*catalogo.iva/100)),1))
+                WHEN tempCotizacion.idCurrency=1 AND catalogo.currency=2 THEN 
+                    (ROUND((((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100))* @currentTc),1) - ROUND((((catalogo.unit_cost*docItems.quantity)+(catalogo.unit_cost*docItems.quantity*catalogo.iva/100))* @currentTc),1))
+                ELSE
+                    (ROUND((((catalogo.unit_price*docItems.quantity)+(catalogo.unit_price*docItems.quantity*catalogo.iva/100))/ @currentTc) ,1) - ROUND((((catalogo.unit_cost*docItems.quantity)+(catalogo.unit_cost*docItems.quantity*catalogo.iva/100))/ @currentTc) ,1))
+            END-- UTILIDADES
         FROM DocumentItems AS docItems
         LEFT JOIN #TempCotizaciones AS tempCotizacion ON tempCotizacion.currentDocumentId = docItems.document
-        WHERE docItems.document=tempCotizacion.currentDocumentId
+        LEFT JOIN Catalogue AS catalogo ON catalogo.id_code=docItems.idCatalogue
+        WHERE docItems.document=tempCotizacion.currentDocumentId AND catalogo.[status]=1
     -- + ----------------- ↑↑↑ INSERCION DE LAS PARTIDAS TEMPORALES ↑↑↑ -----------------------
+
+    -- + ----------------- ↓↓↓ ACTUALIZAR TOTAL DEL DOCUMENTOS CON LOS NUEVOS IMPORTES ↓↓↓ -----------------------
+
+    UPDATE #TempCotizaciones SET
+        totalAmount = (SELECT SUM(items.totalImport) FROM #TemDocumentItems AS items LEFT JOIN #TempCotizaciones AS tempDoc ON tempDoc.currentDocumentId=items.currentDocumentId WHERE items.currentDocumentId= tempDoc.currentDocumentId),
+        subTotalAmount= (SELECT SUM(items.subTotal) FROM #TemDocumentItems AS items LEFT JOIN #TempCotizaciones AS tempDoc ON tempDoc.currentDocumentId=items.currentDocumentId WHERE items.currentDocumentId= tempDoc.currentDocumentId) ,
+        ivaAmount=(SELECT SUM(items.iva) FROM #TemDocumentItems AS items LEFT JOIN #TempCotizaciones AS tempDoc ON tempDoc.currentDocumentId=items.currentDocumentId WHERE items.currentDocumentId= tempDoc.currentDocumentId)
+    FROM #TempCotizaciones AS tempDocument
+    LEFT JOIN #TemDocumentItems AS tempItems ON tempItems.currentDocumentId=tempDocument.currentDocumentId
+    WHERE tempDocument.currentDocumentId = tempItems.currentDocumentId
+
+ 
+    -- + ----------------- ↑↑↑ ACTUALIZAR TOTAL DEL DOCUMENTOS CON LOS NUEVOS IMPORTES ↑↑↑ -----------------------
+
 
     -- + ----------------- ↓↓↓ INSERCIÓN DE LOS PERIODOS TEMPORALES DE CONTRATOS ESPECIALES ↓↓↓ -----------------------
     /*
@@ -404,14 +549,15 @@ BEGIN
     )
         SELECT 
             periocity.createdBy,
-            periocity.createdDate,
+            @todayDate,
             periocity.idDocument,
             periocity.idPeriocityType,
             periocity.lastUpdatedBy,
-            periocity.lastUpdatedDate,
+            @todayDate,
             periocity.[status],
             CASE 
-                WHEN periocity.idPeriocityType= 1 THEN periocity.[value] + 1
+                WHEN (periocity.idPeriocityType= 1 AND periocity.[value] + 1<13) THEN periocity.[value] + 1
+                WHEN (periocity.idPeriocityType= 1 AND periocity.[value] + 1>=13) THEN 1
                 ELSE periocity.[value]
             END,-- Periocity value
             CASE 
@@ -446,14 +592,15 @@ BEGIN
     )
         SELECT 
             periocity.createdBy,
-            periocity.createdDate,
+            @todayDate,
             tempCotizacion.currentDocumentId,-- id del documento
             periocity.idPeriocityType,
             periocity.lastUpdatedBy,
-            periocity.lastUpdatedDate,
+            @todayDate,
             periocity.[status],
             CASE 
-                WHEN periocity.idPeriocityType= 1 THEN periocity.[value] + 1
+                WHEN (periocity.idPeriocityType= 1 AND periocity.[value] + 1<13) THEN periocity.[value] + 1
+                WHEN (periocity.idPeriocityType= 1 AND periocity.[value] + 1>=13) THEN 1
                 ELSE periocity.[value]
             END,-- Periocity value
             CASE 
@@ -469,6 +616,7 @@ BEGIN
         LEFT JOIN #TempCotizaciones AS tempCotizacion ON tempCotizacion.idQuote= periocity.idDocument
         WHERE  tempCotizacion.idQuote IS NOT NULL AND periocity.idDocument=tempCotizacion.idQuote
     -- + ----------------- ↑↑↑ INSERCION DE LOS PERIODOS TEMPORALES DE CONTRATOS NORMALES ↑↑↑ -----------------------
+
 
     -- + ----------------- ↓↓↓ INSERCION DE LOS COMENTARIOS TEMPORALES DE PERIODO (SOLO APLICA PARA LOS DOCUMENTOS CON PERIODO) ↓↓↓ -----------------------
     /*
@@ -540,6 +688,39 @@ BEGIN
                                     END)
 
     -- + ----------------- ↑↑↑ INSERCION DE LOS COMENTARIOS TEMPORALES SEGUN LA REGLA DE NEGOCIO EN LOS PARAMETROS ↑↑↑ -----------------------
+
+    -- + ----------------- ↓↓↓ INSERCION DE COMENTARIOS SOBRE PRODUCTOS INACTIVOS ↓↓↓ -----------------------
+    
+    INSERT INTO #TemDocumentsComments (
+        currentDocumentId,
+        comment,
+        commentType,
+        createdBy,
+        createdDate,
+        lastUpdateBy,
+        lastUpdateDate,
+        [order],
+        [status]
+    )
+        SELECT
+            cotizacion.currentDocumentId,
+            CONCAT(N'⚠️ La partida con SKU ',catalogo.sku, ' ya no esta disponible'),
+            3,-- Tipo comentario
+            'SISTEMA',
+            @todayDate,
+            'SISTEMA',
+            @todayDate,
+            items.[order],
+            1-- status
+        FROM #TempCotizaciones AS cotizacion
+        LEFT JOIN DocumentItems AS items ON items.document=cotizacion.currentDocumentId
+        LEFT JOIN Catalogue AS catalogo ON catalogo.id_code= items.idCatalogue
+        WHERE catalogo.[status]=0
+
+    -- + ----------------- ↑↑↑ INSERCION DE COMENTARIOS SOBRE PRODUCTOS INACTIVOS ↑↑↑ -----------------------
+
+    
+
 
 
 --? ----------------- ↑↑↑ INSERCION DE TODAS LAS TABLAS TEMPORALES ↑↑↑ ------------------------
@@ -647,7 +828,6 @@ BEGIN
 --? ----------------- ↑↑↑ ACTUALIZACION DE LAS TABLAS TEMPORALES CON EL NUEVO ID Y NUMERO DE DOCUMENTO ↑↑↑ -----------------------
 
 --* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-
 --? ----------------- ↓↓↓ INSERCION DE LOS RECORDATORIOS EN LA TABLA TEMPORAL ↓↓↓ -----------------------
     /*
         Con la tabla de cotizaciones temporales actualizada con el id de la nueva cotización, insertamos en la tabla temporal
@@ -674,8 +854,10 @@ BEGIN
             @todayDate,-- attentionDate
             @todayDate,-- createDate
             CASE 
-                WHEN tempCotizacion.previusQuoteStatus = 3 THEN CONCAT('Nueva cotización creada: ',tempCotizacion.newDocumentNumber,' para ', customer.shortName)
-                WHEN tempCotizacion.previusQuoteStatus IS NULL THEN CONCAT('Nueva cotización creada: ',tempCotizacion.newDocumentNumber,' para ', customer.shortName)
+                WHEN tempCotizacion.previusQuoteStatus = 3 AND tempCotizacion.countInactiveItems=0 THEN CONCAT('Nueva cotización creada: ',tempCotizacion.newDocumentNumber,' para ', customer.shortName) -- | !Alerta partidas no activas
+                WHEN tempCotizacion.previusQuoteStatus = 3 AND tempCotizacion.countInactiveItems>0 THEN CONCAT(N'Nueva cotización creada: ',tempCotizacion.newDocumentNumber,' para ', customer.shortName,N' ⚠️',' Alerta partidas no activas') -- | !Alerta partidas no activas
+                WHEN tempCotizacion.previusQuoteStatus IS NULL AND tempCotizacion.countInactiveItems=0 THEN CONCAT('Nueva cotización creada: ',tempCotizacion.newDocumentNumber,' para ', customer.shortName)
+                WHEN tempCotizacion.previusQuoteStatus IS NULL AND tempCotizacion.countInactiveItems>0 THEN CONCAT(N'Nueva cotización creada: ',tempCotizacion.newDocumentNumber,' para ', customer.shortName,N' ⚠️',' Alerta partidas no activas')
                 ELSE CONCAT('Advertencia se creo una nueva cotización cuya cotizacion anterior no ha sido facturada : ', tempCotizacion.newDocumentNumber, ' para ', customer.shortName )
             END,
             1,
@@ -696,7 +878,8 @@ BEGIN
 --? ----------------- ↓↓↓ INSERCION MASIVA A TABLAS REALES ↓↓↓ -----------------------
     -- + ----------------- ↓↓↓ INSERCION A PARTIDAS ↓↓↓ -----------------------
     INSERT INTO DocumentItems (
-        document, 
+        document,
+        [description], 
         unit_price,
         unit_cost,
         idCatalogue,
@@ -735,6 +918,7 @@ BEGIN
     )
         SELECT
             newDocumentId,
+            [description],
             unit_price,
             unit_cost,
             idCatalogue,
@@ -859,7 +1043,7 @@ BEGIN
         INNER JOIN #TempCotizaciones AS tempContratos
         ON documents.idDocument = tempContratos.currentDocumentId
 
-    
+    SELECT 'funciono la actualizacion de la DB' AS [message];
 --? ----------------- ↑↑↑ ACTUALIZAR EL ESTATUS DEL CONTRATO ↑↑↑ -----------------------
 
 --* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
@@ -902,7 +1086,7 @@ BEGIN
 --? ----------------- ↑↑↑ SECCION DONDE SE BORRAN LAS TABLAS TEMPORALES ↑↑↑ -----------------------
 
 --! ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-    END TRY
+END TRY
     BEGIN CATCH
         IF (XACT_STATE()= -1)
                 BEGIN
