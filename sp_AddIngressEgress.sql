@@ -30,6 +30,7 @@
 --	Date			Programmer					Revision	    Revision Notes
 -- =================================================================================================
 --	2021-12-16		Adrian Alardin   			1.0.0.0			Initial Revision
+--	2021-12-16		Adrian Alardin   			1.0.0.0			current bank residue added
 -- *****************************************************************************************************************************
 SET
     ANSI_NULLS ON
@@ -56,23 +57,59 @@ SET
     NOCOUNT ON -- Insert statements for procedure here
 SET
     LANGUAGE Spanish;
-INSERT INTO Movements
-                (
-                    bankID,movementType,movementTypeNumber,
-                    reference,concept,amount,
-                    status,createdBy,createdDate,
-                    movementDate,
-                    bankAccount,customerAssociated,saldo
-                )
-                
-                VALUES
+     DECLARE @currentBankResidue DECIMAL(14,2);
+    DECLARE @totalIngress DECIMAL(14,2);
+    DECLARE @totalEgress DECIMAL(14,2);
 
-                (
-                    @bank,@movementType,@movementTypeNumber,
-                    @reference,@concept,@amount,
-                    @status,SUBSTRING(@createdBy,0,30),GETDATE(),
-                    CONVERT(DATETIME,@movementDate,102),
-                    @bankAccount,@customerAssociated,@amount
-                )
+    SELECT @totalIngress= ISNULL(total,0) FROM ingress_view WHERE bankAccount=@bankAccount
+    SELECT @totalEgress= ISNULL(total,0) FROM egress_view WHERE bankAccount=@bankAccount
+    SELECT @currentBankResidue= initialAmount+@totalIngress-@totalEgress FROM BankAccounts WHERE bankAccountID= @bankAccount
+
+    IF (@movementType=1)
+        BEGIN 
+            SET @currentBankResidue= @currentBankResidue + @amount
+        END
+    ELSE
+        BEGIN 
+            SET @currentBankResidue= @currentBankResidue - @amount
+        END
+
+
+INSERT INTO Movements (
+    bankID,
+    movementType,
+    movementTypeNumber,
+    reference,
+    concept,
+    amount,
+    status,
+    createdBy,
+    createdDate,
+    movementDate,
+    bankAccount,
+    customerAssociated,
+    saldo,
+    currentBankResidue,
+    noMovement
+    
+)
+VALUES (
+    @bank,
+    @movementType,
+    @movementTypeNumber,
+    @reference,
+    @concept,
+    @amount,
+    @status,
+    SUBSTRING(@createdBy,0,30),
+    GETDATE(),
+    CONVERT(DATETIME,@movementDate,102),
+    @bankAccount,
+    @customerAssociated,
+    @amount,
+    @currentBankResidue,
+    dbo.fn_NextMovementNumber(@bankAccount)
+)
+
 END
 GO

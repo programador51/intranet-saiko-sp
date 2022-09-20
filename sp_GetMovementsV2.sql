@@ -89,96 +89,218 @@ BEGIN
     -- LIMIT of registers that can be returned per query
     DECLARE @rowsPerPage INT = 10;
 
+    IF OBJECT_ID(N'tempdb..#tempMovement') IS NOT NULL
+        BEGIN
+            DROP TABLE #tempMovement
+        END
+
+    CREATE TABLE #tempMovement (
+        id INT PRIMARY KEY NOT NULL,
+        [date] DATETIME NOT NULL,
+        reference NVARCHAR(30),
+        statusDescription NVARCHAR(256),
+        [status] INT,
+        checkNumber NVARCHAR(50),
+        movementTypeDescription NVARCHAR(256),
+        movementType INT,
+        concept NVARCHAR(256),
+        paymentMethod INT,
+        customerAssociated INT,
+        residue DECIMAL(14,2),
+        asociated DECIMAL(14,2),
+        typeAssocitionDescription NVARCHAR(256),
+        typeAssociationId INT,
+        noMovement INT,
+        bankAccount INT,
+        amount DECIMAL(14,2),
+        currentResidue DECIMAL(14,2)
+
+    )
+
+    INSERT INTO #tempMovement (
+        id,
+        [date],
+        reference,
+        statusDescription,
+        [status],
+        checkNumber,
+        movementTypeDescription,
+        movementType,
+        concept,
+        paymentMethod,
+        customerAssociated,
+        residue,
+        asociated,
+        typeAssocitionDescription,
+        typeAssociationId,
+        noMovement,
+        bankAccount,
+        amount,
+        currentResidue
+    )
+
+    SELECT 
+        movement.MovementID,
+        dbo.FormatDateYYYMMDD(movement.movementDate),
+        movement.reference,
+        movementTypes.[description],
+        movement.[status],
+        CASE 
+            WHEN movement.checkNumber IS NULL THEN ''
+            ELSE movement.checkNumber
+        END,
+        CASE
+            WHEN movement.movementType = 1 THEN 'Ingreso'
+            ELSE 'Egreso'
+        END,
+        movement.movementType,
+        movement.concept,
+        movement.paymentMethod,
+        movement.customerAssociated,
+        movement.saldo,
+        movement.acreditedAmountCalculated,
+        movementAssociatios.description,
+        movement.movementTypeNumber,
+        movement.noMovement,
+        movement.bankAccount,
+        movement.amount,
+        CASE 
+            WHEN movement.movementType=1
+                THEN 
+                    movement.amount + LAG(currentBankResidue,1,account.initialAmount) OVER (ORDER BY movement.noMovement ASC)
+            ELSE
+                LAG(currentBankResidue,1,account.initialAmount) OVER (ORDER BY movement.noMovement ASC) - movement.amount 
+        END AS currentResidue
+    FROM Movements AS movement
+    LEFT JOIN MovementTypes AS movementTypes ON movementTypes.movementID= movement.[status]
+    LEFT JOIN MovementTypeAssociation AS movementAssociatios ON movementAssociatios.id= movement.movementTypeNumber
+    LEFT JOIN BankAccounts AS account ON account.bankAccountID=movement.bankAccount
+    WHERE movement.[status]!=5 AND movement.bankAccount=@account
+    ORDER BY movement.noMovement ASC
+
+
+    INSERT INTO #tempMovement (
+        id,
+        [date],
+        reference,
+        statusDescription,
+        [status],
+        checkNumber,
+        movementTypeDescription,
+        movementType,
+        concept,
+        paymentMethod,
+        customerAssociated,
+        residue,
+        asociated,
+        typeAssocitionDescription,
+        typeAssociationId,
+        noMovement,
+        bankAccount,
+        amount,
+        currentResidue
+    )
+
+    SELECT 
+        movement.MovementID,
+        dbo.FormatDateYYYMMDD(movement.movementDate),
+        movement.reference,
+        movementTypes.[description],
+        movement.[status],
+        CASE 
+            WHEN movement.checkNumber IS NULL THEN ''
+            ELSE movement.checkNumber
+        END,
+        CASE
+            WHEN movement.movementType = 1 THEN 'Ingreso'
+            ELSE 'Egreso'
+        END,
+        movement.movementType,
+        movement.concept,
+        movement.paymentMethod,
+        movement.customerAssociated,
+        movement.saldo,
+        movement.acreditedAmountCalculated,
+        movementAssociatios.description,
+        movement.movementTypeNumber,
+        movement.noMovement,
+        movement.bankAccount,
+        movement.amount,
+        0 AS currentResidue
+    FROM Movements AS movement
+    LEFT JOIN MovementTypes AS movementTypes ON movementTypes.movementID= movement.[status]
+    LEFT JOIN MovementTypeAssociation AS movementAssociatios ON movementAssociatios.id= movement.movementTypeNumber
+    LEFT JOIN BankAccounts AS account ON account.bankAccountID=movement.bankAccount
+    WHERE movement.[status]=5 AND movement.bankAccount=@account
+    ORDER BY movement.noMovement ASC
+
     SELECT @noRegisters = COUNT(*)
-    FROM Movements
+    FROM #tempMovement
     WHERE
-    (movementDate BETWEEN @beginDate AND @endDate) AND
-        bankAccount = @account AND
+    ([date] >= @beginDate AND  [date] <=@endDate) AND
+    bankAccount = @account AND
         (status = @status OR @status IS NULL);
-
     SELECT @offsetValue = (@pageRequested - 1) * @rowsPerPage;
-
     SELECT @totalPages = CEILING((@noRegisters*1.0)/@rowsPerPage);
-
     SELECT
         @totalPages AS pages,
         @pageRequested AS actualPage,
         @noRegisters AS noRegisters;
 
-    SELECT
 
-        CONVERT(VARCHAR(10),Movements.movementDate,105) AS Fecha,
 
-        CASE WHEN
-    Movements.reference IS NULL THEN ''
-    ELSE Movements.reference
-END AS Referencia_deposito,
+    SELECT 
+        [date] AS Fecha,
+        reference AS Referencia_deposito,
+        movementTypeDescription AS [status],
+        checkNumber AS Cheque,
+        checkNumber AS checkNumber,
+        movementTypeDescription AS Tipo_Movimiento,
+        movementType AS movementType,
+        CASE 
+            WHEN movementType = 1 THEN ''
+            ELSE dbo.fn_FormatCurrency(amount)
+        END AS Egreso,
+        CASE 
+            WHEN movementType = 0 THEN ''
+            ELSE dbo.fn_FormatCurrency(amount)
+        END AS Ingreso,
+        concept AS Concepto,
+        CASE 
+            WHEN paymentMethod = NULL THEN CONVERT(NVARCHAR(10),paymentMethod)
+            ELSE  ''
+        END AS Metodo,
+        paymentMethod AS paymentMethod,
+        id AS Movimiento,
+        FORMAT(noMovement,'0000000') AS Folio,
+        status AS statusValue,
+        customerAssociated,
+        residue AS saldo,
+        dbo.fn_RoundDecimals(amount,2) AS [importe.number],
+        dbo.fn_FormatCurrency(dbo.fn_RoundDecimals(amount,2)) AS [importe.text],
+        dbo.fn_RoundDecimals(residue,2) AS [residue.number],
+        dbo.fn_FormatCurrency(dbo.fn_RoundDecimals(residue,2)) AS [residue.text],
+        dbo.fn_RoundDecimals(asociated,2) AS [asociado.number],
+        dbo.fn_FormatCurrency(dbo.fn_RoundDecimals(asociated,2)) AS [asociado.text],
+        typeAssocitionDescription AS [typeAssociation.description],
+        typeAssociationId AS [typeAssociation.id]
 
-        MovementTypes.description AS status,
-
-        CASE WHEN
-    Movements.checkNumber IS NULL THEN ''
-    ELSE Movements.checkNumber
-END AS Cheque,
-
-        Movements.checkNumber,
-
-        CASE WHEN
-    Movements.movementType = 1 THEN 'Ingreso'
-    ELSE 'Egreso'
-END AS Tipo_Movimiento,
-
-        Movements.movementType,
-
-        CASE WHEN
-    Movements.movementType = 1 THEN ''
-    ELSE CONVERT(NVARCHAR(100),Movements.amount)
-END AS Egreso,
-
-        CASE WHEN 
-    Movements.movementType = 0 THEN ''
-    ELSE CONVERT(NVARCHAR(100),Movements.amount)
-END AS Ingreso,
-
-        Movements.concept AS Concepto,
-
-        CASE WHEN
-    Movements.paymentMethod = NULL THEN CONVERT(NVARCHAR(10),Movements.paymentMethod)
-    ELSE  ''
-END AS Metodo,
-
-        Movements.paymentMethod,
-
-        CONVERT(INT,Movements.MovementID) AS Movimiento,
-
-        Movements.status AS statusValue,
-        Movements.customerAssociated,
-
-        Movements.saldo AS saldo,
-
-        dbo.fn_RoundDecimals(Movements.[amount],2) AS [importe.number],
-        dbo.fn_FormatCurrency(dbo.fn_RoundDecimals(Movements.[amount],2)) AS [importe.text],
-
-        dbo.fn_RoundDecimals(Movements.[saldo],2) AS [residue.number],
-        dbo.fn_FormatCurrency(dbo.fn_RoundDecimals(Movements.[saldo],2)) AS [residue.text],
-
-        dbo.fn_RoundDecimals(Movements.[acreditedAmountCalculated],2) AS [asociado.number],
-        dbo.fn_FormatCurrency(dbo.fn_RoundDecimals(Movements.[acreditedAmountCalculated],2)) AS [asociado.text]
-
-    FROM Movements
-
-        JOIN MovementTypes ON Movements.status = MovementTypes.movementID
+    FROM #tempMovement
 
     WHERE 
-    bankAccount = @account AND
-        (movementDate BETWEEN @beginDate AND @endDate) AND
-        (Movements.status = @status OR @status IS NULL)
+        bankAccount = @account AND
+            ([date]>= @beginDate AND [date]<= @endDate) AND
+            ([status] = @status OR @status IS NULL)
 
-    ORDER BY Movements.MovementID DESC
+        ORDER BY [date] ASC
+        OFFSET @offsetValue ROWS
+        FETCH NEXT @rowsPerPage ROWS ONLY
 
-OFFSET @offsetValue ROWS
-FETCH NEXT @rowsPerPage ROWS ONLY
+        FOR JSON PATH, ROOT('movements'), INCLUDE_NULL_VALUES
 
-    FOR JSON PATH, ROOT('movements'), INCLUDE_NULL_VALUES;
+    IF OBJECT_ID(N'tempdb..#tempMovement') IS NOT NULL
+            BEGIN
+                DROP TABLE #tempMovement
+            END
 
     END
