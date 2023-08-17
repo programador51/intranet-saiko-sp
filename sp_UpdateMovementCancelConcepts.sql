@@ -3,18 +3,15 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 08-10-2022
--- Description: Upates the movement status to consiliate the moemvent
--- STORED PROCEDURE NAME:	sp_UpdateMovementConsilation
+-- Create date: 03-28-2023
+-- Description: 
+-- STORED PROCEDURE NAME:	sp_UpdateMovementCancelConcepts
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @idMovement: Movement id
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @idStatus: Id of the status to vaalidate ('Asociado');
--- @idNewStatus: Id of the new status ('Consiliado');
 -- ===================================================================================================================================
 -- Returns: 
 -- @ErrorOccurred: Identify if any error occurred
@@ -26,8 +23,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-08-10		Adrian Alardin   			1.0.0.0			Initial Revision	
---	2022-09-26		Adrian Alardin   			1.0.0.1			Reconcile and associate the movements according to the arrangements	
+--	2023-03-28		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -35,82 +31,97 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 08/10/2022
--- Description: sp_UpdateMovementConsilation - Upates the movement status to consiliate the associated
-CREATE PROCEDURE sp_UpdateMovementConsilation(
-    @idMovementsToConciliate NVARCHAR(MAX),
-    @idMovementsToAssociate NVARCHAR(MAX),
-    @lastUpdateBy NVARCHAR(30)
+-- Create Date: 03/28/2023
+-- Description: sp_UpdateMovementCancelConcepts - Some Notes
+-- DROP PROCEDURE sp_UpdateMovementCancelConcepts;
+CREATE PROCEDURE sp_UpdateMovementCancelConcepts(
+    @idMovement INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    DECLARE @tranName NVARCHAR(50)='consiliateMovement';
-    
-    BEGIN TRY
-        BEGIN TRANSACTION @tranName;
-        IF (@idMovementsToConciliate IS NOT NULL)
-            BEGIN
-                IF EXISTS (SELECT * FROM Movements WHERE MovementID IN(@idMovementsToConciliate) AND [status]=3)
-                    BEGIN
-                        UPDATE Movements SET 
-                            [status]= @idNewStatus,
-                            lastUpdatedDate= GETUTCDATE(),
-                            lastUpdatedBy= @lastUpdateBy
-                        WHERE MovementID IN(@idMovementsToConciliate) AND [status]=4 -- DE ASOCIADO PASA A CONCILIADO
-                
-                    END
-            END
-        
-        IF (@idMovementsToAssociate IS NOT NULL)
-            BEGIN
-                IF EXISTS (SELECT * FROM Movements WHERE MovementID IN(@idMovementsToAssociate) AND [status]=4)
-                        BEGIN
-                            UPDATE Movements SET 
-                                [status]= @idNewStatus,
-                                lastUpdatedDate= GETUTCDATE(),
-                                lastUpdatedBy= @lastUpdateBy
-                            WHERE MovementID IN(@idMovementsToAssociate) AND [status]=3 -- DE COCILIADO A ASOCIADO
-                        END
-            END
+    DECLARE @tranName NVARCHAR = 'cancelMovementConcepts';
+    DECLARE @trancount INT;
+    SET @trancount = @@trancount;
 
-        COMMIT TRANSACTION @tranName;
-        RETURN 'Succes updated';
+    BEGIN TRY
+        IF (@trancount= 0)
+            BEGIN
+        BEGIN TRANSACTION @tranName;
+    END
+        ELSE
+            BEGIN
+        SAVE TRANSACTION @tranName
+    END
+
+
+        DECLARE @isCancelable BIT;
+        SELECT @isCancelable=
+            CASE WHEN COUNT(*)>0 THEN 0
+            ELSE 1
+            END
+        FROM Complements WHERE idMovement=@idMovement;
+
+
+
+        IF @isCancelable=1
+            BEGIN 
+                UPDATE Movements SET [status]=4 WHERE MovementID=@idMovement;
+                UPDATE ConceptAssociation SET [status]=0 WHERE idMovement=@idMovement;
+            END
+        ELSE    
+            BEGIN
+                RAISERROR(N'El movimiento no es cancelable',10,1)
+            END
+    IF (@trancount=0)
+        BEGIN
+            COMMIT TRANSACTION @tranName
+        END     
 
     END TRY
-
-    BEGIN CATCH
+        BEGIN CATCH
         DECLARE @Severity  INT= ERROR_SEVERITY()
         DECLARE @State   SMALLINT = ERROR_SEVERITY()
         DECLARE @Message   NVARCHAR(MAX)
+        DECLARE @xstate INT= XACT_STATE();
 
-        DECLARE @infoSended NVARCHAR(MAX)= 'Informacion que se trato de enviar en orden para el SP sp_UpdateMovementConsilation
-            @idMovementsToConciliate
-            @idMovementsToAssociate
-            @lastUpdateBy';
+        DECLARE @infoSended NVARCHAR(MAX)= 'Sin informacion por el momento';
         DECLARE @wasAnError TINYINT=1;
         DECLARE @mustBeSyncManually TINYINT=1;
         DECLARE @provider TINYINT=4;
 
         SET @Message= ERROR_MESSAGE();
-        IF (XACT_STATE()= -1)
+        IF (@xstate= -1)
             BEGIN
-                ROLLBACK TRANSACTION @tranName
-            END
-        IF (XACT_STATE()=1)
+        ROLLBACK TRANSACTION @tranName
+    END
+        IF (@xstate=1 AND @trancount=0)
             BEGIN
-                COMMIT TRANSACTION @tranName
-            END
+        -- COMMIT TRANSACTION @tranName
+        ROLLBACK TRANSACTION @tranName
+    END
 
-        IF @@TRANCOUNT > 0  
+        IF (@xstate=1 AND @trancount > 0)
             BEGIN
-                ROLLBACK TRANSACTION @tranName;   
-            END
+        ROLLBACK TRANSACTION @tranName;
+    END
         RAISERROR(@Message, @Severity, @State);
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
 
     END CATCH
+      IF OBJECT_ID(N'tempdb..#NewItemsId') IS NOT NULL 
+        BEGIN
+        DROP TABLE #NewItemsId
+    END
+    IF OBJECT_ID(N'tempdb..#itemsToTheDocument') IS NOT NULL 
+        BEGIN
+        DROP TABLE #itemsToTheDocument
+    END
+    IF OBJECT_ID(N'tempdb..#itemsToTheCatalog') IS NOT NULL 
+        BEGIN
+        DROP TABLE #itemsToTheCatalog
+    END
 
 END
 

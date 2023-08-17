@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 12-28-2022
--- Description:  Adds the contract document
--- STORED PROCEDURE NAME:	sp_AddContract
+-- Create date: 12-27-2022
+-- Description: Adds the quote document
+-- STORED PROCEDURE NAME:	sp_AddQuote
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,10 +24,10 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-12-28		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-12-27		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 
-DROP PROCEDURE dbo.sp_AddContract -- !Eliminar cuando sea necesaario
+DROP PROCEDURE dbo.sp_AddQuote -- !Eliminar cuando sea necesaario
 
 SET ANSI_NULLS ON
 GO
@@ -35,10 +35,10 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 12/28/2022
--- Description: sp_AddOrder - Adds the contract document
+-- Create Date: 12/27/2022
+-- Description: sp_AddQuote - Adds the quote document
 
-CREATE PROCEDURE sp_AddContract(
+CREATE PROCEDURE sp_AddQuote(
     @isNewContact BIT,
     @name NVARCHAR(30),
     @middleName NVARCHAR(30),
@@ -67,18 +67,18 @@ CREATE PROCEDURE sp_AddContract(
     @createdBy NVARCHAR(30),
     @idCustomer INT,
     @idExecutive INT,
+    @idRepresentedBy INT,
     @tempComents Comments READONLY,
     @tempItems Items READONLY,
     @tempItemsUpdateCatalogue Items READONLY,
-    @tempItemsAddCatalogue Items READONLY,
-    @contractKey NVARCHAR(30)
+    @tempItemsAddCatalogue Items READONLY
 )
 AS
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    DECLARE @tranName NVARCHAR = 'addContract';
+    DECLARE @tranName NVARCHAR = 'addQuote';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
 
@@ -90,9 +90,8 @@ BEGIN
     DECLARE @itemsToTheDocument AS Items;
     DECLARE @itemsToAdd  AS Items;
     DECLARE @itemsToUpdate AS Items;
-
-    DECLARE @documentStatus INT =13-- Vigente
-    DECLARE @documentType INT =6 --Contrato
+    DECLARE @documentStatus INT =1-- Abierta
+    DECLARE @documentType INT =1 --Cotizacion
 
     DECLARE @active TINYINT =1
 
@@ -111,12 +110,12 @@ BEGIN
     BEGIN TRY
         IF (@trancount= 0)
             BEGIN
-                BEGIN TRANSACTION @tranName;
-            END
+        BEGIN TRANSACTION @tranName;
+    END
         ELSE
             BEGIN
-                SAVE TRANSACTION @tranName
-            END
+        SAVE TRANSACTION @tranName
+    END
     
     INSERT INTO @itemsToTheDocument SELECT * FROM @tempItems
     INSERT INTO @itemsToAdd SELECT * FROM @tempItemsAddCatalogue
@@ -229,6 +228,7 @@ BEGIN
         idCurrency,
         idCustomer,
         idExecutive,
+        idRepresentedBy,
         idProgress,
         idStatus,
         idTypeDocument,
@@ -239,8 +239,7 @@ BEGIN
         reminderDate,
         subTotalAmount,
         totalAmount,
-        initialDate,
-        [contract]
+        initialDate
 
         )
     VALUES(
@@ -255,8 +254,9 @@ BEGIN
             @idCurrency,
             @idCustomer,
             @idExecutive,
+            @idRepresentedBy,
             @idProbability,
-            @documentStatus,--Estauts del contrato
+            @documentStatus,--Estauts de la cotización.
             @documentType, -- Id del tipo de documento
             @iva,
             @createdBy,
@@ -265,8 +265,7 @@ BEGIN
             @reminderDate,
             @subtotal,
             @totalAmount,
-            @initialDate,
-            @contractKey
+            @initialDate
         )
         SELECT @idInsertedDocument= SCOPE_IDENTITY();
 

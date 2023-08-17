@@ -43,7 +43,7 @@ BEGIN
     -- SET NOCOUNT ON added to prevent extra result sets from
     -- interfering with SELECT statements.
     SET NOCOUNT ON
-    --* ----------------- ↓↓↓ DYNIMIC QUERY VARIABLES ↓↓↓ -----------------------
+       --* ----------------- ↓↓↓ DYNIMIC QUERY VARIABLES ↓↓↓ -----------------------
 
 DECLARE @PARAMS NVARCHAR (MAX);-- LOS 'PARAMETROS' PARA OBTENER LOS REGISTROS DE LA TABLA
 DECLARE @JOIN_CLAUSE NVARCHAR(MAX);-- 'JOINS' .SE CONFIGURAN SEGUN EL TIPO DE DOCUMENTO
@@ -91,7 +91,7 @@ DECLARE @invoiceReceptionEndDate NVARCHAR(30);-- LA FECHA DE REGISTRO DE LA FACT
 
 --? ----------------- ↓↓↓ Prepare PARAMS ↓↓↓ -----------------------
 
-    SET @PARAMS ='@documentId INT, @invoiceReceptionNumber NVARCHAR(256),@invoiceReceptionDocTypeID INT,@invoiceReceptionDocType NVARCHAR(256),@invoiceReceptionCurrency NVARCHAR(3),@invoiceReceptionImport NVARCHAR(MAX),@invoiceReceptionIva NVARCHAR(MAX),@invoiceReceptionTotal NVARCHAR(MAX),@invoiceReceptionBeginDate NVARCHAR(30),@invoiceReceptionEndDate NVARCHAR(30), @quoteID INT, @preinvoiceId INT, @odcId INT, @contractID INT, @invoiceId INT, @customerProviderId INT '; 
+    SET @PARAMS ='@documentId INT, @invoiceReceptionNumber NVARCHAR(256),@invoiceReceptionDocType NVARCHAR(256),@invoiceReceptionDocTypeID INT,@invoiceReceptionCurrency NVARCHAR(3),@invoiceReceptionImport NVARCHAR(MAX),@invoiceReceptionIva NVARCHAR(MAX),@invoiceReceptionTotal NVARCHAR(MAX),@invoiceReceptionBeginDate NVARCHAR(30),@invoiceReceptionEndDate NVARCHAR(30), @quoteID INT, @preinvoiceId INT, @odcId INT, @contractID INT, @invoiceId INT, @customerProviderId INT '; 
 
 --? ----------------- ↑↑↑ Prepare PARAMS ↑↑↑ -----------------------
 
@@ -99,17 +99,29 @@ DECLARE @invoiceReceptionEndDate NVARCHAR(30);-- LA FECHA DE REGISTRO DE LA FACT
 --? ----------------- ↓↓↓ Prepare documents id releated and the DocumentType ID ↓↓↓ -----------------------
     -- SE OBTIENEN TODOS LOS IDs DE LOS DOCUMENTOS RELACIONADOS Y EL TIPO DE DOCUMENTO SEGUN EL ID DE DOCUMENTO QUE RECIBIMOS
     SELECT 
-        @quoteID=idQuotation,
-        @preinvoiceId= idInvoice,
+        @quoteID= CASE
+            WHEN idTypeDocument=1 THEN idDocument
+            ELSE idQuotation
+        END,
+        @preinvoiceId= CASE
+            WHEN idTypeDocument=2 THEN idDocument
+            ELSE idInvoice
+        END,
         @odcId=CASE 
             WHEN idTypeDocument=3 THEN idDocument
             ELSE idOC
         END,
         -- @odcId=idOC,
-        @contractID= idContract,
+        @contractID= CASE
+            WHEN idTypeDocument=6 THEN idDocument
+            ELSE idContract
+        END,
         @documentType=idTypeDocument
 
     FROM Documents WHERE idDocument=@documentId
+
+
+    
 
 --? ----------------- ↑↑↑ Prepare documents id releated and the DocumentType ID ↑↑↑ -----------------------
 
@@ -128,8 +140,8 @@ DECLARE @invoiceReceptionEndDate NVARCHAR(30);-- LA FECHA DE REGISTRO DE LA FACT
     -- SE GUARDA EL NUMERO DE LA FACTURA RECIBIDA DE LA ODC RELACIONADA
     SELECT 
        @invoiceReceptionNumber= LegalDocuments.noDocument,
-       @invoiceReceptionDocTypeID= LegalDocuments.idTypeLegalDocument,
        @invoiceReceptionDocType= DocumentType.[description],
+       @invoiceReceptionDocTypeID= LegalDocuments.idTypeLegalDocument,
        @invoiceReceptionCurrency=LegalDocuments.currencyCode,
        @invoiceReceptionImport=dbo.fn_FormatCurrency(LegalDocuments.import),
        @invoiceReceptionIva=dbo.fn_FormatCurrency(LegalDocuments.iva),
@@ -241,7 +253,7 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     ISNULL(FORMAT(QuoteDoc.documentNumber,''0000000''),''ND'') AS [client.documents.quote.number],
     ISNULL(QuoteDoc.idDocument,-1) AS [client.documents.quote.id],
     ISNULL(QuoteCurrency.code,''ND'') AS [client.documents.quote.currency],
-    ISNULL(QuoteType.[description],''ND'') AS [client.documents.quote.documentType],
+    ISNULL(QuoteType.[description],''Cotización'') AS [client.documents.quote.documentType],
     ISNULL(QuoteDoc.idTypeDocument,-1) AS [client.documents.quote.documentTypeID],
     ISNULL(dbo.fn_FormatCurrency(QuoteDoc.subTotalAmount),''ND'') AS [client.documents.quote.import],
     ISNULL(dbo.fn_FormatCurrency(QuoteDoc.ivaAmount),''ND'') AS [client.documents.quote.iva],
@@ -253,7 +265,7 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     QuoteCustomer.commercialName AS [client.documents.quote.customer.commercialName],
     QuoteCustomer.shortName AS [client.documents.quote.customer.shortName],
     CASE
-        WHEN QuoteContact.firstName IS NULL THEN QuoteCustomer.commercialName
+        WHEN QuoteContact.firstName IS NULL THEN QuoteCustomer.socialReason
         ELSE CONCAT(QuoteContact.firstName,'' '',QuoteContact.middleName,'' '',QuoteContact.lastName1,'' '',QuoteContact.lastName2)
     END AS [client.documents.quote.contact.name],
     CASE
@@ -268,26 +280,25 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     END AS [client.documents.quote.contact.cellphone],
     ISNULL(QuoteContact.email,QuoteCustomer.email) AS [client.documents.quote.contact.mail],
     ''Registro'' AS [client.documents.quote.beginDateLabel],
-    ''Expiración'' AS [client.documents.quote.endDateLabel],
+    ''Vigencia'' AS [client.documents.quote.endDateLabel],
 
 
     ISNULL(FORMAT (PreInvoiceDoc.documentNumber,''0000000''),''ND'') AS [client.documents.preInvoice.number],
     ISNULL(PreInvoiceDoc.idDocument,-1) AS [client.documents.preInvoice.id],
     ISNULL(PreInvoiceCurrency.code,''ND'') AS [client.documents.preInvoice.currency],
-    ISNULL(PreInvoiceType.[description],''ND'') AS [client.documents.preInvoice.documentType],
+    ISNULL(PreInvoiceType.[description],''Pedido'') AS [client.documents.preInvoice.documentType],
     ISNULL(PreInvoiceDoc.idTypeDocument,-1) AS [client.documents.preInvoice.documentTypeID],
     ISNULL(dbo.fn_FormatCurrency(PreInvoiceDoc.subTotalAmount),''ND'') AS [client.documents.preInvoice.import],
     ISNULL(dbo.fn_FormatCurrency(PreInvoiceDoc.ivaAmount),''ND'') AS [client.documents.preInvoice.iva],
     ISNULL(dbo.fn_FormatCurrency(PreInvoiceDoc.totalAmount),''ND'') AS [client.documents.preInvoice.total],
     ISNULL(dbo.FormatDate(PreInvoiceDoc.createdDate),''ND'') AS [client.documents.preInvoice.beginDate],
-    ISNULL(dbo.FormatDate(PreInvoiceDoc.expirationDate),''ND'') AS [client.documents.preInvoice.endDate],
+    ISNULL(dbo.FormatDate(InvoiceDoc.createdDate),''ND'') AS [client.documents.preInvoice.endDate],
     PreInvoiceCustomer.socialReason AS [client.documents.preInvoice.customer.socialReson],
     PreInvoiceCustomer.rfc AS [client.documents.preInvoice.customer.rfc],
     PreInvoiceCustomer.commercialName AS [client.documents.preInvoice.customer.commercialName],
     PreInvoiceCustomer.shortName AS [client.documents.preInvoice.customer.shortName],
-    -- ISNULL(PreInvoiceCustomer.movil,''ND'') AS [client.documents.preInvoice.contact.statusPhone],
     CASE
-        WHEN PreInvoiceContact.firstName IS NULL THEN PreInvoiceCustomer.commercialName
+        WHEN PreInvoiceContact.firstName IS NULL THEN PreInvoiceCustomer.socialReason
         ELSE CONCAT(PreInvoiceContact.firstName,'' '',PreInvoiceContact.middleName,'' '',PreInvoiceContact.lastName1,'' '',PreInvoiceContact.lastName2)
     END AS [client.documents.preInvoice.contact.name],
     CASE
@@ -302,12 +313,15 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     END AS [client.documents.preInvoice.contact.cellphone],
     ISNULL(PreInvoiceContact.email,PreInvoiceCustomer.email) AS [client.documents.preInvoice.contact.mail],
     ''Registro'' AS [client.documents.preInvoice.beginDateLabel],
-    ''Expiración'' AS [client.documents.preInvoice.endDateLabel],
-
-    ISNULL(InvoiceDoc.noDocument,''ND'') AS [client.documents.invoice.number],
+    ''Facturación'' AS [client.documents.preInvoice.endDateLabel],
+    CASE
+        WHEN InvoiceDoc.noDocument IS NULL THEN ''ND''
+        WHEN InvoiceDoc.idTypeLegalDocument=2 THEN FORMAT (CAST(InvoiceDoc.noDocument AS INT),''0000000'')
+        ELSE InvoiceDoc.noDocument
+    END AS [client.documents.invoice.number],
     ISNULL(InvoiceDoc.id,-1) AS [client.documents.invoice.id],
     ISNULL(InvoiceDoc.currencyCode,''ND'') AS [client.documents.invoice.currency],
-    ISNULL(InvoiceType.[description],''ND'') AS [client.documents.invoice.documentType],
+    ISNULL(InvoiceType.[description],''Factura'') AS [client.documents.invoice.documentType],
     ISNULL(InvoiceDoc.idTypeLegalDocument,-1) AS [client.documents.invoice.documentTypeID],
     ISNULL(dbo.fn_FormatCurrency(InvoiceDoc.import),''ND'') AS [client.documents.invoice.import],
     ISNULL(dbo.fn_FormatCurrency(InvoiceDoc.iva),''ND'') AS [client.documents.invoice.iva],
@@ -319,7 +333,7 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     InvoiceCustomer.commercialName AS [client.documents.invoice.customer.commercialName],
     InvoiceCustomer.shortName AS [client.documents.invoice.customer.shortName],
     CASE
-        WHEN InvoiceContact.firstName IS NULL THEN InvoiceCustomer.commercialName
+        WHEN InvoiceContact.firstName IS NULL THEN InvoiceCustomer.socialReason
         ELSE CONCAT(InvoiceContact.firstName,'' '',InvoiceContact.middleName,'' '',InvoiceContact.lastName1,'' '',InvoiceContact.lastName2)
     END AS [client.documents.invoice.contact.name],
     CASE
@@ -334,26 +348,27 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     END AS [client.documents.invoice.contact.cellphone],
     ISNULL(InvoiceContact.email,InvoiceCustomer.email) AS [client.documents.invoice.contact.mail],
     ''Registro'' AS [client.documents.invoice.beginDateLabel],
-    ''Expiración'' AS [client.documents.invoice.endDateLabel],
+    ''Vencimiento'' AS [client.documents.invoice.endDateLabel],
 
 
     ISNULL(FORMAT (ContractDoc.documentNumber,''0000000''),''ND'') AS [client.documents.contract.number],
     ISNULL(ContractDoc.idDocument,-1)AS [client.documents.contract.id],
     ISNULL(ContractCurrency.code,''ND'') AS [client.documents.contract.currency],
-    ISNULL(ContractType.[description],''ND'') AS [client.documents.contract.documentType],
+    ISNULL(ContractType.[description],''Contrato'') AS [client.documents.contract.documentType],
     ISNULL(ContractDoc.idTypeDocument,-1) AS [client.documents.contract.documentTypeID],
     ISNULL(dbo.fn_FormatCurrency(ContractDoc.subTotalAmount),''ND'') AS [client.documents.contract.import],
     ISNULL(dbo.fn_FormatCurrency(ContractDoc.ivaAmount),''ND'') AS [client.documents.contract.iva],
     ISNULL(dbo.fn_FormatCurrency(ContractDoc.totalAmount),''ND'') AS [client.documents.contract.total],
-    ISNULL(dbo.FormatDate(ContractDoc.reminderDate),''ND'') AS [client.documents.contract.reminder],
-    ISNULL(dbo.FormatDate(ContractDoc.createdDate),''ND'') AS [client.documents.contract.beginDate],
+    ISNULL(ContractDoc.contract,''ND'') AS [client.documents.contract.key],
+    ISNULL(dbo.FormatDate(ContractDoc.reminderDate),''ND'') AS [client.documents.contract.beginDate],
+    ISNULL(dbo.FormatDate(ContractDoc.initialDate),''ND'') AS [client.documents.contract.initialDate],
     ISNULL(dbo.FormatDate(ContractDoc.expirationDate),''ND'') AS [client.documents.contract.endDate],
     ContractCustomer.socialReason AS [client.documents.contract.customer.socialReson],
     ContractCustomer.rfc AS [client.documents.contract.customer.rfc],
     ContractCustomer.commercialName AS [client.documents.contract.customer.commercialName],
     ContractCustomer.shortName AS [client.documents.contract.customer.shortName],
     CASE
-        WHEN ContractContact.firstName IS NULL THEN ContractCustomer.commercialName
+        WHEN ContractContact.firstName IS NULL THEN ContractCustomer.socialReason
         ELSE CONCAT(ContractContact.firstName,'' '',ContractContact.middleName,'' '',ContractContact.lastName1,'' '',ContractContact.lastName2)
     END AS [client.documents.contract.contact.name],
     CASE
@@ -367,14 +382,14 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
         ELSE CONCAT(''+'',ContractContact.cellNumberAreaCode,'' '',ContractContact.cellNumber)
     END AS [client.documents.contract.contact.cellphone],
     ISNULL(ContractContact.email,ContractCustomer.email) AS [client.documents.contract.contact.mail],
-    ''Registro'' AS [client.documents.contract.beginDateLabel],
-    ''Expiración'' AS [client.documents.contract.endDateLabel],
+    ''Recordatorio'' AS [client.documents.contract.beginDateLabel],
+    ''Vencimiento'' AS [client.documents.contract.endDateLabel],
 
 
     ISNULL(FORMAT (OdcDoc.documentNumber,''0000000''),''ND'') AS [provider.documents.odc.number],
     ISNULL(OdcDoc.idDocument,-1) AS [provider.documents.odc.id],
     ISNULL(OdcCurrency.code,''ND'') AS [provider.documents.odc.currency],
-    ISNULL(OdcType.[description],''ND'') AS [provider.documents.odc.documentType],
+    ISNULL(OdcType.[description],''ODC'') AS [provider.documents.odc.documentType],
     ISNULL(OdcDoc.idTypeDocument,-1) AS [provider.documents.odc.documentTypeID],
     ISNULL(dbo.fn_FormatCurrency(OdcDoc.subTotalAmount),''ND'') AS [provider.documents.odc.import],
     ISNULL(dbo.fn_FormatCurrency(OdcDoc.ivaAmount),''ND'') AS [provider.documents.odc.iva],
@@ -386,7 +401,7 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     ProviderCustomer.commercialName AS [provider.documents.odc.customer.commercialName],
     ProviderCustomer.shortName AS [provider.documents.odc.customer.shortName],
     CASE
-        WHEN ProviderContact.firstName IS NULL THEN ProviderCustomer.commercialName
+        WHEN ProviderContact.firstName IS NULL THEN ProviderCustomer.socialReason
         ELSE CONCAT(ProviderContact.firstName,'' '',ProviderContact.middleName,'' '',ProviderContact.lastName1,'' '',ProviderContact.lastName2)
     END AS [provider.documents.odc.contact.name],
     CASE
@@ -418,7 +433,7 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
     ProviderCustomer.commercialName AS [provider.documents.invoiceReception.customer.commercialName],
     ProviderCustomer.shortName AS [provider.documents.invoiceReception.customer.shortName],
     CASE
-        WHEN ProviderContact.firstName IS NULL THEN ProviderCustomer.commercialName
+        WHEN ProviderContact.firstName IS NULL THEN ProviderCustomer.socialReason
         ELSE CONCAT(ProviderContact.firstName,'' '',ProviderContact.middleName,'' '',ProviderContact.lastName1,'' '',ProviderContact.lastName2)
     END AS [provider.documents.invoiceReception.contact.name],
     CASE
@@ -432,8 +447,8 @@ SET @SELECT_CLAUSE='SELECT DISTINCT
         ELSE CONCAT(''+'',ProviderContact.cellNumberAreaCode,'' '',ProviderContact.cellNumber)
     END AS [provider.documents.invoiceReception.contact.cellphone],
     ISNULL(ProviderContact.email,ProviderCustomer.email) AS [provider.documents.invoiceReception.contact.mail],
-    ''Expedición'' AS [provider.documents.invoiceReception.beginDateLabel],
-    ''Recepción'' AS [provider.documents.invoiceReception.endDateLabel],
+    ''Emisión'' AS [provider.documents.invoiceReception.beginDateLabel],
+    ''Vencimiento'' AS [provider.documents.invoiceReception.endDateLabel],
 
     ''Proveedor'' AS [provider.customerType] '
 

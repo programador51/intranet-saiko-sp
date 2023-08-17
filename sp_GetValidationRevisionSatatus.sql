@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2023
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 11-07-2022
+-- Description: Check if the invoice is on revision
+-- STORED PROCEDURE NAME:	sp_GetValidationRevisionSatatus
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,7 +24,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2023-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-11-07		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,15 +32,27 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2023
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 11/07/2022
+-- Description: sp_GetValidationRevisionSatatus - Check if the invoice is on revision
+CREATE PROCEDURE sp_GetValidationRevisionSatatus(
+    @idDocument INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    DECLARE @authorizationFlag INT;
+
+    SELECT 
+        @authorizationFlag = authorizationFlag 
+    FROM Documents 
+    WHERE idDocument = @idDocument;
+
+    SELECT 
+        CASE 
+            WHEN @authorizationFlag = 3 THEN CONVERT(BIT,1) 
+            ELSE CONVERT(BIT,0) 
+        END AS isOnRevision;
 
 END
 

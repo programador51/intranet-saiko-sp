@@ -3,18 +3,16 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 08-10-2022
--- Description: Upates the movement status to consiliate the moemvent
--- STORED PROCEDURE NAME:	sp_UpdateMovementConsilation
+-- Create date: 06-13-2023
+-- Description: Upload the movment egress concepts types for setup propourse only
+-- STORED PROCEDURE NAME:	sp_UploadEgressConceptsTypes
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @idMovement: Movement id
+-- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @idStatus: Id of the status to vaalidate ('Asociado');
--- @idNewStatus: Id of the new status ('Consiliado');
 -- ===================================================================================================================================
 -- Returns: 
 -- @ErrorOccurred: Identify if any error occurred
@@ -26,8 +24,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2022-08-10		Adrian Alardin   			1.0.0.0			Initial Revision	
---	2022-09-26		Adrian Alardin   			1.0.0.1			Reconcile and associate the movements according to the arrangements	
+--	2023-06-13		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -35,48 +32,60 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 08/10/2022
--- Description: sp_UpdateMovementConsilation - Upates the movement status to consiliate the associated
-CREATE PROCEDURE sp_UpdateMovementConsilation(
-    @idMovementsToConciliate NVARCHAR(MAX),
-    @idMovementsToAssociate NVARCHAR(MAX),
-    @lastUpdateBy NVARCHAR(30)
+-- Create Date: 06/13/2023
+-- Description: sp_UploadEgressConceptsTypes - Upload the movment egress concepts types for setup propourse only
+CREATE PROCEDURE sp_UploadEgressConceptsTypes(
+    @tempTypes MovementConceptsTypes READONLY,
+    @createdBy  NVARCHAR(30)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    DECLARE @tranName NVARCHAR(50)='consiliateMovement';
-    
+    DECLARE @tranName NVARCHAR = 'uploadEgressConceptsTypes';
+    DECLARE @trancount INT;
+    SET @trancount = @@trancount;
+
+
     BEGIN TRY
-        BEGIN TRANSACTION @tranName;
-        IF (@idMovementsToConciliate IS NOT NULL)
+        IF (@trancount= 0)
             BEGIN
-                IF EXISTS (SELECT * FROM Movements WHERE MovementID IN(@idMovementsToConciliate) AND [status]=3)
-                    BEGIN
-                        UPDATE Movements SET 
-                            [status]= @idNewStatus,
-                            lastUpdatedDate= GETUTCDATE(),
-                            lastUpdatedBy= @lastUpdateBy
-                        WHERE MovementID IN(@idMovementsToConciliate) AND [status]=4 -- DE ASOCIADO PASA A CONCILIADO
-                
-                    END
+                BEGIN TRANSACTION @tranName;
             END
-        
-        IF (@idMovementsToAssociate IS NOT NULL)
+        ELSE
             BEGIN
-                IF EXISTS (SELECT * FROM Movements WHERE MovementID IN(@idMovementsToAssociate) AND [status]=4)
-                        BEGIN
-                            UPDATE Movements SET 
-                                [status]= @idNewStatus,
-                                lastUpdatedDate= GETUTCDATE(),
-                                lastUpdatedBy= @lastUpdateBy
-                            WHERE MovementID IN(@idMovementsToAssociate) AND [status]=3 -- DE COCILIADO A ASOCIADO
-                        END
+                SAVE TRANSACTION @tranName
             END
 
-        COMMIT TRANSACTION @tranName;
-        RETURN 'Succes updated';
+        INSERT INTO TypeInformativeExpenses (
+            createdBy,
+            createdDate,
+            [description],
+            lastUpadatedDate,
+            lastUpdatedBy,
+            [status]
+        )
+        SELECT 
+            @createdBy,
+            GETUTCDATE(),
+            [description],
+            GETUTCDATE(),
+            @createdBy,
+            [status]
+            
+        FROM @tempTypes
+        WHERE idType IS NULL
+
+        UPDATE infoExpenses SET
+            infoExpenses.[description]= tempConcept.[description],
+            infoExpenses.[status]=tempConcept.[status]
+        FROM TypeInformativeExpenses AS infoExpenses
+        INNER JOIN @tempTypes  AS tempConcept ON tempConcept.idType= infoExpenses.id
+
+    IF (@trancount=0)
+        BEGIN
+            COMMIT TRANSACTION @tranName
+        END     
 
     END TRY
 
@@ -84,33 +93,33 @@ BEGIN
         DECLARE @Severity  INT= ERROR_SEVERITY()
         DECLARE @State   SMALLINT = ERROR_SEVERITY()
         DECLARE @Message   NVARCHAR(MAX)
+        DECLARE @xstate INT= XACT_STATE();
 
-        DECLARE @infoSended NVARCHAR(MAX)= 'Informacion que se trato de enviar en orden para el SP sp_UpdateMovementConsilation
-            @idMovementsToConciliate
-            @idMovementsToAssociate
-            @lastUpdateBy';
+        DECLARE @infoSended NVARCHAR(MAX)= 'Sin informacion por el momento';
         DECLARE @wasAnError TINYINT=1;
         DECLARE @mustBeSyncManually TINYINT=1;
         DECLARE @provider TINYINT=4;
 
         SET @Message= ERROR_MESSAGE();
-        IF (XACT_STATE()= -1)
+        IF (@xstate= -1)
             BEGIN
-                ROLLBACK TRANSACTION @tranName
-            END
-        IF (XACT_STATE()=1)
+        ROLLBACK TRANSACTION @tranName
+    END
+        IF (@xstate=1 AND @trancount=0)
             BEGIN
-                COMMIT TRANSACTION @tranName
-            END
+        -- COMMIT TRANSACTION @tranName
+        ROLLBACK TRANSACTION @tranName
+    END
 
-        IF @@TRANCOUNT > 0  
+        IF (@xstate=1 AND @trancount > 0)
             BEGIN
-                ROLLBACK TRANSACTION @tranName;   
-            END
+        ROLLBACK TRANSACTION @tranName;
+    END
         RAISERROR(@Message, @Severity, @State);
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
 
     END CATCH
+
 
 END
 

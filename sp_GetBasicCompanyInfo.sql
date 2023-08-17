@@ -3,28 +3,25 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2023
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 03-14-2023
+-- Description: Gets the basic info of the company
+-- STORED PROCEDURE NAME:	sp_GetBasicCompanyInfo
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
--- @ErrorOccurred: Identify if any error occurred
--- @Message: The reply message
--- @CodeNumber: The error code
+-- Basic info of the company as Name,Adress1, Adress2, phone number and RFC.
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2023-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-03-14		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,15 +29,18 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2023
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
-) AS 
+-- Create Date: 03/14/2023
+-- Description: sp_GetBasicCompanyInfo Gets the basic info of the company
+CREATE PROCEDURE sp_GetBasicCompanyInfo
+AS
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+
+    SELECT [value]
+    FROM Parameters
+    WHERE parameter BETWEEN 5 AND 9
 
 END
 

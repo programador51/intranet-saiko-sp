@@ -42,18 +42,24 @@ BEGIN
         Banks.shortName AS shortName,
         Banks.bankID AS bankID,
         BankAccounts.accountNumber AS accountNumber,
-        BankAccounts.CLABE AS clabe,
+        CASE WHEN BankAccounts.CLABE IS NULL THEN 'ND' ELSE BankAccounts.CLABE END AS clabe,
         BankAccounts.SATcode AS SAT,
         Currencies.code AS currency,
         BankAccounts.nextIncome AS ingreso,
         BankAccounts.nextEgress AS egreso,
         BankAccounts.comments AS tipoCuenta,
-        BankAccounts.initialAmount AS saldoInicial
+        BankAccounts.initialAmount AS saldoInicial,
+        BankAccounts.[status] AS [status],
+        CASE
+            WHEN BankAccounts.[status]= 1 THEN 'Activo'
+            ELSE 'Inactivo'
+        END AS statusDescription
         FROM BankAccounts
         INNER JOIN Currencies ON BankAccounts.currencyID=Currencies.currencyID
         INNER JOIN Banks ON BankAccounts.bankID=Banks.bankID
-        ORDER BY BankAccounts.bankAccountID
+        ORDER BY BankAccounts.bankAccountID,BankAccounts.status
             OFFSET @rangeBegin ROWS
             FETCH NEXT @noRegisters ROWS ONLY
 END
 GO
+

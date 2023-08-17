@@ -3,28 +3,24 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2023
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 02-22-2023
+-- Description: Get the concepts for the documents type incomes
+-- STORED PROCEDURE NAME:	sp_GetIncomesConceptsToDocuments
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
--- @ErrorOccurred: Identify if any error occurred
--- @Message: The reply message
--- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2023-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-02-22		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,15 +28,20 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2023
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
-) AS 
+-- Create Date: 02/22/2023
+-- Description: sp_GetIncomesConceptsToDocuments - Get the concepts for the documents type incomes
+CREATE PROCEDURE sp_GetIncomesConceptsToDocuments AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    SELECT 
+        incomes.id,
+        CONCAT(infoType.[description],' ',incomes.[description]) AS [description],
+        incomes.defaultToDocument
+    FROM InformativeIncomes AS incomes
+    LEFT JOIN TypeInformativeIncomes AS infoType ON infoType.id=incomes.idTypeInformativeIncomes
+    WHERE isForDocuments=1
 
 END
 

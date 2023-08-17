@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2023
+-- Create date: 02-16-2023
 -- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- STORED PROCEDURE NAME:	sp_UpdateDocumentRelatedV2
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,7 +24,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2023-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-02-16		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,15 +32,43 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2023
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
-) AS 
+-- Create Date: 02/16/2023
+-- Description: sp_UpdateDocumentRelatedV2 - Some Notes
+CREATE PROCEDURE sp_UpdateDocumentRelatedV2(
+    @idQuote INT,
+    @idOrder INT,
+    @idOdc INT,
+    @idContract INT
+)
+AS
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+
+    UPDATE Documents SET
+        idInvoice=@idOrder,
+        idOC=@idOdc,
+        idContract=@idContract
+    WHERE idDocument=@idQuote
+    UPDATE Documents SET
+        idQuotation=@idQuote,
+        idOC=@idOdc,
+        idContract=@idContract
+    WHERE idDocument=@idOrder
+    UPDATE Documents SET
+        idQuotation=@idQuote,
+        idInvoice=@idOrder,
+        idContract=@idContract
+    WHERE idDocument=@idOdc
+    IF @idContract IS NOT NULL
+        BEGIN
+        UPDATE Documents SET
+            idQuotation=@idQuote,
+            idInvoice=@idOrder,
+            idOC=@idOdc
+        WHERE idDocument=@idContract
+    END
 
 END
 

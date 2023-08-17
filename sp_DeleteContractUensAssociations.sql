@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2023
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 11-25-2022
+-- Description: Eliminates the association of the contract with the UENS of the games
+-- STORED PROCEDURE NAME:	sp_DeleteContractUensAssociations
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,7 +24,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2023-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2022-11-25		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,15 +32,17 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2023
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 11/25/2022
+-- Description: sp_DeleteContractUensAssociations - Eliminates the association of the contract with the UENS of the games
+CREATE PROCEDURE sp_DeleteContractUensAssociations(
+    @idContract INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+
+    DELETE FROM ContractByUENS WHERE idContract= @idContract;
 
 END
 

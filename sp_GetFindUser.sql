@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 02-10-2023
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 08-08-2023
+-- Description: Finds an especific user
+-- STORED PROCEDURE NAME:	sp_GetFindUser
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,7 +24,7 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2023-02-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-08-08		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -32,15 +32,22 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 02/10/2023
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 08/08/2023
+-- Description: sp_GetFindUser - Finds an especific user
+CREATE PROCEDURE sp_GetFindUser(
+    @user NVARCHAR(50)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    SELECT 
+        *, 
+        CONCAT(firstName,' ',middleName,' ',lastName1,' ',lastName2) AS fullName
+    FROM Users 
+    WHERE 
+        userName = @user OR 
+        email = @user
 
 END
 

@@ -4,8 +4,8 @@
 -- =============================================
 -- Author:      Adrian Alardin
 -- Create date: 02-10-2023
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Description: Actualiza el id del xml y psdf de legal document 
+-- STORED PROCEDURE NAME:	sp_UpdateXmlAndPdfId
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -33,14 +33,19 @@ GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
 -- Create Date: 02/10/2023
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
-) AS 
+-- Description: sp_UpdateXmlAndPdfId - Some Notes
+CREATE PROCEDURE sp_UpdateXmlAndPdfId(
+    @idlegalDocument INT,
+    @idPdf INT,
+    @idXml INT
+)
+AS
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+
+    UPDATE LegalDocuments SET pdf= @idPdf, [xml]=@idXml WHERE id=@idlegalDocument
 
 END
 
