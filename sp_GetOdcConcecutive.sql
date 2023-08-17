@@ -44,69 +44,60 @@ BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    SELECT
-        provaider.socialReason AS providerSocialReason,
-        client.socialReason AS clientSocialReason,
-        ISNULL((
-            SELECT
-            odcSub.documentNumber AS documentNumber,
-            provaiderSub.socialReason AS providerSocialReason,
-            ISNULL(invoice.noDocument,'ND') AS folio,
-            odcSub.createdDate AS emitedDate,
-            odcSub.sentDate AS sendDate,
-            odcSub.subTotalAmount AS importe,
-            odcSub.ivaAmount AS iva,
-            odcSub.totalAmount AS total,
-            currencySub.code AS currency
-        FROM Documents AS odcSub
-        LEFT JOIN LegalDocuments AS invoiceSub ON  invoiceSub.uuid=odcSub.uuid
-        LEFT JOIN Customers AS provaiderSub ON provaiderSub.customerID= odcSub.idCustomer
-        LEFT JOIN Documents AS quoteSub ON quoteSub.idDocument= odcSub.idQuotation
-        LEFT JOIN Currencies AS currencySub ON currencySub.currencyID=odcSub.idCurrency
+    IF(@beginDate IS NULL OR @endDate IS NULL)
+        BEGIN
+        SELECT
+            @beginDate =FIRST_VALUE(createdDate) 
+            OVER (ORDER BY createdDate)
+        FROM Documents
         WHERE 
-            (odcSub.createdDate >= @beginDate AND odcSub.createdDate<=@endDate) AND
-            -- provaiderSub.socialReason=provaider.socialReason AND
-            odcSub.idStatus IN (
-                SELECT 
-                    CASE 
-                        WHEN @status IS NULL THEN id
-                        ELSE @status
-                    END
-                FROM DocumentNewStatus WHERE idDocumentType = 3 AND [status]=1
-            ) AND 
-            (
-                odcSub.documentNumber LIKE ISNULL(@search,'')+'%' OR
-                invoiceSub.noDocument LIKE ISNULL(@search,'')+'%' OR
-                provaiderSub.socialReason LIKE ISNULL(@search,'')+'%'
-            )
-        ORDER BY 
-            odcSub.documentNumber
-        FOR JSON PATH, INCLUDE_NULL_VALUES
-        ),'[]') AS [odc]
+                idTypeDocument=@idDocumentType
+
+        SELECT
+            @endDate =FIRST_VALUE(createdDate) 
+            OVER (ORDER BY createdDate DESC)
+        FROM Documents
+        WHERE 
+                idTypeDocument=@idDocumentType
+    END
+
+    SELECT
+        odc.idDocument AS id,
+        odc.documentNumber AS documentNumber,
+        odc.createdDate AS emitedDate,
+        odc.sentDate AS sendDate,
+        odcStatus.[description] AS [status],
+        currency.code AS currency,
+        odc.totalAmount AS total,
+        provaider.shortName AS providerSocialReason,
+        ISNULL(client.socialReason,'ND') AS clientSocialReason
+
     FROM Documents AS odc
-    LEFT JOIN LegalDocuments AS invoice ON  invoice.uuid=odc.uuid
-    LEFT JOIN Customers AS provaider ON provaider.customerID= odc.idCustomer
-    LEFT JOIN Documents AS quote ON quote.idDocument= odc.idQuotation
-    LEFT JOIN Customers AS client ON client.customerID = quote.idCustomer
-    LEFT JOIN Currencies AS currency ON currency.currencyID=odc.idCurrency
+        LEFT JOIN DocumentNewStatus AS odcStatus ON odcStatus.id=odc.idStatus
+        LEFT JOIN Currencies AS currency ON currency.currencyID=odc.idCurrency
+        LEFT JOIN Customers AS provaider ON provaider.customerID=odc.idCustomer
+        LEFT JOIN Documents AS orden ON orden.idDocument=odc.idInvoice
+        LEFT JOIN Customers AS client ON client.customerID = orden.idCUstomer
     WHERE 
-        (odc.createdDate >= @beginDate AND odc.createdDate<=@endDate) AND
         odc.idStatus IN (
-            SELECT 
-                CASE 
+            SELECT
+            CASE 
                     WHEN @status IS NULL THEN id
                     ELSE @status
                 END
-            FROM DocumentNewStatus WHERE idDocumentType = 3 AND [status]=1
-        ) AND 
+        FROM DocumentNewStatus
+        WHERE 
+                idDocumentType=@idDocumentType AND
+            [status] =1
+        ) AND
+        (odc.createdDate>=@beginDate AND odc.createdDate <= @endDate ) AND
         (
-            odc.documentNumber LIKE ISNULL(@search,'')+'%' OR
             provaider.socialReason LIKE ISNULL(@search,'')+'%' OR
-            invoice.noDocument LIKE ISNULL(@search,'')+'%'
+        client.socialReason LIKE ISNULL(@search,'')+'%' OR
+        odc.documentNumber LIKE ISNULL(@search,'')+'%'
         )
     ORDER BY 
         odc.documentNumber
-    FOR JSON PATH, ROOT('report')
 
 END
 

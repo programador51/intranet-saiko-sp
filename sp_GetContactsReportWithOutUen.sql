@@ -45,6 +45,10 @@ BEGIN
         customer.socialReason AS socialReason,
         customerType.[description] AS sector,
         ISNULL(uen.[description],'ND') AS uen,
+        contact.firstName AS firstName, 
+        contact.middleName AS middleName ,
+        contact.lastName1 AS lastName1 ,
+        contact.lastName2 AS lastName2 ,
         CONCAT(
             contact.lastName1,' ',
             ISNULL(contact.lastName2,''),' ',
