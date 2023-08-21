@@ -37,7 +37,7 @@ GO
 CREATE PROCEDURE sp_GetCxcPrediction(
     @currencyIWant NVARCHAR(3),
     @currencyToShow NVARCHAR(3),
-    @tc DECIMAL (14,2)
+    @tc DECIMAL (14,4)
 ) AS 
 BEGIN
 
