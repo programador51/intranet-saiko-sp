@@ -34,7 +34,7 @@ GO
 -- Author:      Adrian Alardin Iracheta
 -- Create Date: 08/21/2023
 -- Description: sp_GetContractReport - Some Notes
-CREATE PROCEDURE sp_GetContractReport(
+ALTER PROCEDURE sp_GetContractReport(
     @idExecutive INT,
     @idSector INT,
     @socialReason NVARCHAR(256),
@@ -46,6 +46,7 @@ BEGIN
     SET NOCOUNT ON
     DECLARE @idDocumentType INT = 6 
     DECLARE @customerStatus TINYINT=1;
+    DECLARE @quoteNoStatus INT = 1;
 
     IF OBJECT_ID(N'tempdb..#DocumentByUen') IS NOT NULL 
             BEGIN
@@ -72,14 +73,14 @@ BEGIN
     LEFT JOIN UEN AS uen ON uen.UENID = catalogue.uen
     WHERE 
         contract.idTypeDocument=@idDocumentType AND
-        customer.customerID IN (
+        contract.idExecutive IN (
             SELECT 
                 CASE 
-                    WHEN @idExecutive IS NULL THEN wCustomer.customerID
+                    WHEN @idExecutive IS NULL THEN wUser.userID
                     ELSE @idExecutive
                 END
-            FROM Customers AS wCustomer
-            WHERE wCustomer.[status]=@customerStatus
+            FROM Users AS wUser
+            WHERE wUser.[status]=1
         ) AND 
         customer.idTypeOfCustomer IN (
             SELECT 
@@ -153,7 +154,9 @@ BEGIN
             LEFT JOIN Currencies AS quoteCurrency ON quoteCurrency.currencyID = quotes.idCurrency
             LEFT JOIN Users AS quoteExecutive ON quoteExecutive.userID=quotes.idExecutive
             LEFT JOIN DocumentNewStatus AS quoteStatus ON quoteStatus.id=quotes.idStatus
-            WHERE quotes.idContractParent = contract.idDocument
+            WHERE 
+                quotes.idContractParent = contract.idDocument AND
+                quotes.idStatus != @quoteNoStatus
             FOR JSON PATH, INCLUDE_NULL_VALUES
         )AS history,
         documentStatus.[description] AS [status]
@@ -165,14 +168,14 @@ BEGIN
     LEFT JOIN DocumentNewStatus AS documentStatus ON documentStatus.id=contract.idStatus
     WHERE 
         contract.idTypeDocument=@idDocumentType AND
-        customer.customerID IN (
+        contract.idExecutive IN (
             SELECT 
                 CASE 
-                    WHEN @idExecutive IS NULL THEN wCustomer.customerID
+                    WHEN @idExecutive IS NULL THEN wUser.userID
                     ELSE @idExecutive
                 END
-            FROM Customers AS wCustomer
-            WHERE wCustomer.[status]=@customerStatus
+            FROM Users AS wUser
+            WHERE wUser.[status]=1
         ) AND 
         customer.idTypeOfCustomer IN (
             SELECT 
