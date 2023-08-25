@@ -94,6 +94,7 @@ BEGIN
         (
             provaider.socialReason LIKE ISNULL(@search,'')+'%' OR
         client.socialReason LIKE ISNULL(@search,'')+'%' OR
+        provaider.commercialName LIKE ISNULL(@search,'')+'%' OR
         odc.documentNumber LIKE ISNULL(@search,'')+'%'
         )
     ORDER BY 
