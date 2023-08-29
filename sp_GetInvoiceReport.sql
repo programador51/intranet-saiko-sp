@@ -46,6 +46,42 @@ BEGIN
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
 
+    IF OBJECT_ID(N'tempdb..#TempStatus') IS NOT NULL 
+        BEGIN
+            DROP TABLE #TempStatus
+        END
+
+    CREATE TABLE #TempStatus (
+        id INT NOT NULL IDENTITY(1,1),
+        idStatus INT NOT NULL
+    )
+    IF (@statusId IS NULL)
+        BEGIN
+            INSERT INTO #TempStatus (
+                idStatus
+            )
+            SELECT id
+            FROM LegalDocumentStatus WHERE [status]=1 AND idTypeLegalDocumentType=2
+        END
+    IF(@statusId = 20)
+        BEGIN
+            INSERT INTO #TempStatus (idStatus)
+            VALUES
+            (7),
+            (9)
+        END
+    ELSE
+        BEGIN
+            INSERT INTO #TempStatus (idStatus)
+            VALUES(@statusId)
+        END
+
+    DECLARE @status NVARCHAR(10);
+    IF(@statusId=20)
+        BEGIN
+            SET @status='7,9';
+        END
+
     SELECT  
     invoice.createdDate AS emited,
     invoice.[xml] AS [xml],
@@ -99,15 +135,15 @@ BEGIN
             FROM Customers
         ) AND
         invoice.idLegalDocumentStatus IN (
-            SELECT 
-                CASE 
-                    WHEN @statusId IS NULL THEN id
-                    ELSE @statusId
-                END
-            FROM LegalDocumentStatus WHERE [status]=1 AND idTypeLegalDocumentType=2
+            SELECT idStatus FROM #TempStatus
         ) AND
         invoice.noDocument LIKE ISNULL(@search,'') + '%'
         FOR JSON PATH, ROOT('invoices'), INCLUDE_NULL_VALUES
+
+        IF OBJECT_ID(N'tempdb..#TempStatus') IS NOT NULL 
+        BEGIN
+            DROP TABLE #TempStatus
+        END
 
 
 
