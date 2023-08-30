@@ -53,6 +53,24 @@ BEGIN
     DECLARE @idInvoiceType INT= 1;
     DECLARE @idOrdenType INT= 3;
 
+    IF(@beginDate IS NULL OR @endDate IS NULL)
+        BEGIN
+            SELECT 
+                @beginDate =FIRST_VALUE(createdDate) 
+            OVER (ORDER BY createdDate) 
+            FROM LegalDocuments
+            WHERE 
+                idTypeLegalDocument=@idInvoiceType AND
+                idLegalDocumentStatus != @idInvoiceCancelStatus
+            SELECT 
+                @endDate =FIRST_VALUE(createdDate) 
+            OVER (ORDER BY createdDate DESC) 
+            FROM LegalDocuments
+            WHERE 
+                idTypeLegalDocument=@idInvoiceType AND
+                idLegalDocumentStatus != @idInvoiceCancelStatus
+        END
+
     SELECT DISTINCT
         customer.customerID AS idCustomer,
         customer.socialReason AS socialReason,
@@ -118,6 +136,7 @@ BEGIN
     LEFT JOIN LegalDocuments AS invoiceDoc ON invoiceDoc.socialReason=customer.socialReason
     WHERE 
         customer.customerType=@idCustomerType AND 
+        customer.customerID=@idSocialReason AND
         invoiceDoc.idTypeLegalDocument=1 AND
         invoiceDoc.idLegalDocumentStatus!=@idInvoiceCancelStatus AND
         customer.socialReason= invoiceDoc.socialReason AND

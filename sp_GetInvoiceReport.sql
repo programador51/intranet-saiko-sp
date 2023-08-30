@@ -76,12 +76,6 @@ BEGIN
             VALUES(@statusId)
         END
 
-    DECLARE @status NVARCHAR(10);
-    IF(@statusId=20)
-        BEGIN
-            SET @status='7,9';
-        END
-
     SELECT  
     invoice.createdDate AS emited,
     invoice.[xml] AS [xml],

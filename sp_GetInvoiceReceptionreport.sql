@@ -44,6 +44,36 @@ BEGIN
     SET NOCOUNT ON
     DECLARE @idInvoiceType INT=1;
 
+    IF OBJECT_ID(N'tempdb..#TempStatus') IS NOT NULL 
+        BEGIN
+            DROP TABLE #TempStatus
+        END
+
+    CREATE TABLE #TempStatus (
+        id INT NOT NULL IDENTITY(1,1),
+        idStatus INT NOT NULL
+    )
+    IF (@idLegalDocumentStatus IS NULL)
+        BEGIN
+            INSERT INTO #TempStatus (
+                idStatus
+            )
+            SELECT id
+            FROM LegalDocumentStatus WHERE [status]=1 AND idTypeLegalDocumentType=1
+        END
+    IF(@idLegalDocumentStatus = 20)
+        BEGIN
+            INSERT INTO #TempStatus (idStatus)
+            VALUES
+            (1),
+            (11)
+        END
+    ELSE
+        BEGIN
+            INSERT INTO #TempStatus (idStatus)
+            VALUES(@idLegalDocumentStatus)
+        END
+
     SELECT 
         invoice.emitedDate, 
         invoice.xml,
@@ -79,18 +109,11 @@ BEGIN
             invoice.idTypeLegalDocument =@idInvoiceType AND
             (invoice.noDocument LIKE ISNULL(@querySearch,'') + '%' OR
             invoice.socialReason LIKE ISNULL(@querySearch,'') + '%' ) AND
-            invoice.idLegalDocumentStatus IN (
-                SELECT 
-                    CASE 
-                        WHEN @idLegalDocumentStatus IS NULL THEN id
-                        ELSE @idLegalDocumentStatus
-                    END
-                FROM LegalDocumentStatus
-                WHERE 
-                    [status]=1 AND 
-                    idTypeLegalDocumentType=@idInvoiceType
-            )
-
+            invoice.idLegalDocumentStatus IN (SELECT idStatus FROM #TempStatus)
+IF OBJECT_ID(N'tempdb..#TempStatus') IS NOT NULL 
+        BEGIN
+            DROP TABLE #TempStatus
+        END
 
 END
 
