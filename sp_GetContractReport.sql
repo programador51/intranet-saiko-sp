@@ -25,6 +25,7 @@
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
 --	2023-08-21		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-08-31		Adrian Alardin   			1.0.0.1			Reminder date propertie added	
 -- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
@@ -118,6 +119,7 @@ BEGIN
         ) AS uen,
         --uen va a ser un arreglo de uens, en el servidor se corrige para que sea una concatenacion
         contract.initialDate AS beginDate,
+        contract.reminderDate AS reminderDate,
         contract.expirationDate AS endDate,
         currency.code AS currency,
         contract.subTotalAmount AS subTotal,
@@ -134,6 +136,7 @@ BEGIN
             SELECT 
                 quotes.createdDate AS beginDate,
                 quotes.expirationDate AS endDate,
+                quotes.reminderDate AS reminderDate,
                 quotes.subTotalAmount AS subTotal,
                 currency.code AS currency,
                 quoteExecutive.initials AS executive,

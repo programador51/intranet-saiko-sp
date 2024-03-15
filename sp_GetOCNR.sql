@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 01-31-2024
+-- Create date: 13-10-2023
 -- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- STORED PROCEDURE NAME:	sp_GetOCNR
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,29 +24,35 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-01-31		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-13-10		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_Name')
-    BEGIN 
-
-        DROP PROCEDURE sp_Name;
-    END
-GO
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 01/31/2024
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 13/10/2023
+-- Description: sp_GetOCNR - Some Notes
+CREATE PROCEDURE sp_GetOCNR(
+    @year INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    SELECT 
+        MONTH(ocnr.recordDate) AS recordMonth,
+        ocnr.mxnTotal,
+        ocnr.usdTotal,
+        ocnr.tc,
+        ocnr.total,
+        accounted.accounted
+    FROM SummaryOCNR AS ocnr
+    LEFT JOIN Accounted AS accounted ON accounted.idRecord=ocnr.id
+    WHERE 
+        accounted.idFrom= 3 AND
+        YEAR(recordDate)=@year
 
 END
 

@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 01-31-2024
+-- Create date: 12-28-2023
 -- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- STORED PROCEDURE NAME:	sp_UpdateCsdExpirationDate
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,12 +24,12 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-01-31		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-12-28		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_Name')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_UpdateCsdExpirationDate')
     BEGIN 
 
-        DROP PROCEDURE sp_Name;
+        DROP PROCEDURE sp_UpdateCsdExpirationDate;
     END
 GO
 SET ANSI_NULLS ON
@@ -38,15 +38,68 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 01/31/2024
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 12/28/2023
+-- Description: sp_UpdateCsdExpirationDate - Some Notes
+CREATE PROCEDURE sp_UpdateCsdExpirationDate(
+    @expirationDate NVARCHAR(50)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    DECLARE @tranName NVARCHAR(50)='updateCsdExpiration';
+    DECLARE @trancount INT;
+    DECLARE @idParameter INT= 46
+
+    SET @trancount = @@trancount;
+    BEGIN TRY
+        IF (@trancount= 0)
+            BEGIN
+                BEGIN TRANSACTION @tranName;
+            END
+        ELSE
+            BEGIN
+                SAVE TRANSACTION @tranName
+            END
+
+        UPDATE Parameters SET [value]= @expirationDate WHERE parameter = @idParameter;
+
+
+     IF (@trancount=0)
+            BEGIN
+                COMMIT TRANSACTION @tranName
+            END
+    END TRY
+    BEGIN CATCH
+        DECLARE @Severity  INT= ERROR_SEVERITY()
+        DECLARE @State   SMALLINT = ERROR_SEVERITY()
+        DECLARE @Message   NVARCHAR(MAX)
+        DECLARE @xstate INT= XACT_STATE();
+
+        DECLARE @infoSended NVARCHAR(MAX)= 'Sin informacion por el momento';
+        DECLARE @wasAnError TINYINT=1;
+        DECLARE @mustBeSyncManually TINYINT=1;
+        DECLARE @provider TINYINT=4;
+
+        SET @Message= ERROR_MESSAGE();
+        IF (@xstate= -1)
+            BEGIN
+                ROLLBACK TRANSACTION @tranName
+            END
+        IF (@xstate=1 AND @trancount=0)
+            BEGIN
+                -- COMMIT TRANSACTION @tranName
+                ROLLBACK TRANSACTION @tranName
+            END
+
+        IF (@xstate=1 AND @trancount > 0)
+            BEGIN
+                ROLLBACK TRANSACTION @tranName;
+            END
+        RAISERROR(@Message, @Severity, @State);
+        EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
+
+    END CATCH
 
 END
 

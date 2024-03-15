@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 01-31-2024
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 09-11-2023
+-- Description: Get the old balances from de cxp
+-- STORED PROCEDURE NAME:	sp_GetOldBalanceCxp
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,29 +24,27 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-01-31		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2023-09-11		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_Name')
-    BEGIN 
-
-        DROP PROCEDURE sp_Name;
-    END
-GO
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 01/31/2024
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
+-- Create Date: 09/11/2023
+-- Description: sp_GetOldBalanceCxp - Get the old balances from de cxp
+CREATE PROCEDURE sp_GetOldBalanceCxp(
+    @currencyToUse NVARCHAR(3),
+    @currencyToReport NVARCHAR(3),
+    @tc DECIMAL (14,2)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    EXEC sp_GetOldBalancesProviders @currencyToUse, @currencyToReport,@tc
+    EXEC sp_GetOldBalanceVoucher @currencyToUse, @currencyToReport,@tc
 
 END
 

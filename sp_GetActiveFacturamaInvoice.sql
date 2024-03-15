@@ -3,33 +3,30 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 01-31-2024
--- Description: 
--- STORED PROCEDURE NAME:	sp_Name
+-- Create date: 01-15-2024
+-- Description: Gets the active invoice
+-- STORED PROCEDURE NAME:	sp_GetActiveFacturamaInvoice
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
--- @ErrorOccurred: Identify if any error occurred
--- @Message: The reply message
--- @CodeNumber: The error code
+-- The Legal document id and facturama id
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-01-31		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-01-15		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_Name')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetActiveFacturamaInvoice')
     BEGIN 
 
-        DROP PROCEDURE sp_Name;
+        DROP PROCEDURE sp_GetActiveFacturamaInvoice;
     END
 GO
 SET ANSI_NULLS ON
@@ -38,15 +35,25 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 01/31/2024
--- Description: sp_Name - Some Notes
-CREATE PROCEDURE sp_Name(
-    @variable INT
-) AS 
+-- Create Date: 01/15/2024
+-- Description: sp_GetActiveFacturamaInvoice - Gets the active invoice
+CREATE PROCEDURE sp_GetActiveFacturamaInvoice AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    DECLARE @idInvoiceStatus INT = 7 -- //CxC
+    DECLARE @idlegalDocumentType INT = 2 -- //CxC
+
+
+    SELECT DISTINCT 
+        id, 
+        idFacturamaLegalDocument,
+        uuid
+    FROM LegalDocuments 
+    WHERE 
+        idTypeLegalDocument= @idlegalDocumentType AND 
+        idLegalDocumentStatus=@idInvoiceStatus
 
 END
 
