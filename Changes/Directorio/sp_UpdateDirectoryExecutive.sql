@@ -3,9 +3,9 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 03-15-2024
+-- Create date: 05-09-2024
 -- Description: 
--- STORED PROCEDURE NAME:	sp_AddPaymentReminder
+-- STORED PROCEDURE NAME:	sp_UpdateDirectoryExecutive
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
@@ -24,12 +24,12 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-03-15		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-05-09		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_AddPaymentReminder')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_UpdateDirectoryExecutive')
     BEGIN 
 
-        DROP PROCEDURE sp_AddPaymentReminder;
+        DROP PROCEDURE sp_UpdateDirectoryExecutive;
     END
 GO
 SET ANSI_NULLS ON
@@ -38,21 +38,19 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 03/15/2024
--- Description: sp_AddPaymentReminder - Some Notes
-CREATE PROCEDURE sp_AddPaymentReminder(
-    @reminders PaymentReminderType READONLY
+-- Create Date: 05/09/2024
+-- Description: sp_UpdateDirectoryExecutive - Some Notes
+CREATE PROCEDURE sp_UpdateDirectoryExecutive(
+    @customerExecutive CustomerExecutiveType READONLY
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    
-    
     DECLARE @tranName NVARCHAR(50)='PaymentRemidnerSp';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
-
+    
     BEGIN TRY
         IF (@trancount= 0)
             BEGIN
@@ -63,51 +61,26 @@ BEGIN
                 SAVE TRANSACTION @tranName
             END
 
-        INSERT INTO PaymentReminder (
-            idInvoice,
-            idClient,
-            emitedDate,
-            expirationDate,
-            indexDate,
-            idRule,
-            contact,
-            phone,
-            email,
-            total,
-            residue,
-            currency,
-            executive,
-            idCxc,
-            partiality,
-            folio
-        )
-        SELECT 
-            idInvoice,
-            idClient,
-            emitedDate,
-            expirationDate,
-            indexDate,
-            idRule,
-            contact,
-            phone,
-            email,
-            total,
-            residue,
-            currency,
-            executive,
-            idCxc,
-            partiality,
-            folio
-        FROM @reminders
+        UPDATE customers SET
+            customers.executiveID = customerExecutive.idExecutive
+        FROM Customer_Executive AS customers
+        LEFT JOIN @customerExecutive AS customerExecutive ON customers.customerID = customerExecutive.idCustomer
+        WHERE customers.customerID = customerExecutive.idCustomer
+
+        UPDATE documents SET
+            documents.idExecutive = customerExecutive.idExecutive
+        FROM Documents AS documents
+        LEFT JOIN @customerExecutive AS customerExecutive ON documents.idCustomer = customerExecutive.idCustomer
+        WHERE documents.idCustomer = customerExecutive.idCustomer
 
         IF (@trancount=0)
-        BEGIN
-            COMMIT TRANSACTION @tranName
-        END
-        
+            BEGIN
+                COMMIT TRANSACTION @tranName
+            END
     END TRY
+
     BEGIN CATCH
-    PRINT 'Fallo la funcion'
+        PRINT 'Fallo la funcion'
         DECLARE @Severity  INT= ERROR_SEVERITY()
         DECLARE @State   SMALLINT = ERROR_SEVERITY()
         DECLARE @Message   NVARCHAR(MAX)
@@ -135,8 +108,9 @@ BEGIN
             END
         RAISERROR(@Message, @Severity, @State);
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
+    END CATCH 
 
-    END CATCH
+
 END
 
 -- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------

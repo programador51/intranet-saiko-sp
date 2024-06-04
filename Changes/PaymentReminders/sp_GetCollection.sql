@@ -45,103 +45,135 @@ CREATE PROCEDURE sp_GetCollection(
     @tag INT,
     @page INT,
     @columnOrder NVARCHAR(50),
-    @orderBy NVARCHAR(4)
+    @orderBy NVARCHAR(4),
+    @rowsPerPage INT = 100
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    
+
     DECLARE @offset INT;
     DECLARE @noRegisters INT;
     DECLARE @pages INT;
-    DECLARE @rowsPerPage INT = 100;
 
-    SELECT DISTINCT
-        @noRegisters = COUNT(*) 
+    -----------------------------------------------------------------------------------------------
+
+    DECLARE @TAG_FILTER NVARCHAR(MAX);
+
+    SET @TAG_FILTER = CASE
+                          WHEN @tag IS NULL THEN
+                              'NULL'
+                          ELSE
+                              CONVERT(NVARCHAR, @tag)
+                      END;
+
+    -----------------------------------------------------------------------------------------------
+
+    DECLARE @WHERE_CLAUSE NVARCHAR(MAX)
+        = CONCAT(
+                    ' paymentReminder.indexDate = ''',
+                    @date,
+                    ''' AND (paymentReminder.idTag = ',
+                    @TAG_FILTER,
+                    ' OR ',
+                    @TAG_FILTER,
+                    ' IS NULL)'
+                );
+
+    -----------------------------------------------------------------------------------------------
+
+    DECLARE @setOrder NVARCHAR(MAX);
+
+    SELECT @setOrder = CASE
+                           WHEN @columnOrder = 'folio' THEN
+                               CONCAT('CONVERT(INT,paymentReminder.folio) ', @orderBy, ' ')
+                           WHEN @columnOrder = 'expedicion' THEN
+                               CONCAT('paymentReminder.emitedDate ', @orderBy, ' ')
+                           WHEN @columnOrder = 'expiracion' OR @columnOrder = 'vencidos' THEN
+                               CONCAT('paymentReminder.expirationDate ', @orderBy, ' ')
+                           WHEN @columnOrder = 'regla' THEN
+                               CONCAT('paymentReminder.idRule ', @orderBy, ' ')
+                           WHEN @columnOrder = 'cliente' THEN
+                               CONCAT('client.shortName ', @orderBy, ' ')
+                           WHEN @columnOrder = 'total' THEN
+                               CONCAT('paymentReminder.total ', @orderBy, ' ')
+                           WHEN @columnOrder = 'tag' THEN
+                               CONCAT('paymentReminder.idTag ', @orderBy, ' ')
+                           ELSE
+                               NULL
+                       END;
+
+    -----------------------------------------------------------------------------------------------
+
+    DECLARE @QUERY_PAGINATION NVARCHAR(MAX)
+        = CONCAT(
+                    'SELECT DISTINCT
+           @count = COUNT(*)
     FROM PaymentReminder AS paymentReminder
-    LEFT JOIN Customers AS client ON client.customerID = paymentReminder.idClient
-    LEFT JOIN LegalDocuments AS invoice ON invoice.id= paymentReminder.idInvoice
-    LEFT JOIN Contacts AS contact ON contact.email = paymentReminder.email
-    WHERE 
-        paymentReminder.indexDate = @date
-        -- AND paymentReminder.idTag IN (
-        --     CASE 
-        --         WHEN @tag IS NULL THEN (SELECT id FROM PaymentReminderTags)
-        --         ELSE @tag
-        --     END
-        -- )
+        LEFT JOIN Customers AS client
+            ON client.customerID = paymentReminder.idClient
+    WHERE',
+                    @WHERE_CLAUSE
+                );
 
+    -----------------------------------------------------------------------------------------------
 
-    SELECT @offset = (@page - 1) * @rowsPerPage;
+    EXEC sp_GetPagination @page,
+                          @QUERY_PAGINATION,
+                          @rowsPerPage,
+                          @spOffset = @offset OUTPUT,
+                          @spTotalPages = @pages OUTPUT;
 
-    SELECT @pages = CEILING((@noRegisters*1.0)/@rowsPerPage);
+    -----------------------------------------------------------------------------------------------
 
+    DECLARE @sql NVARCHAR(MAX);
 
-    SELECT 
-        invoice.noDocument AS [folio],
-        invoice.createdDate AS [createdDate],
-        invoice.expirationDate AS [expiration],
-        DATEDIFF(day,invoice.expirationDate,invoice.createdDate) AS [expirationDays],
-        paymentReminder.idRule AS [rule],
-        paymentReminder.currency AS [currency],
-        paymentReminder.total AS [total],
-        executive.initials AS [executive],
-        client.customerID AS [customer.id],
-        client.shortName AS [customer.shortName],
-        client.socialReason AS [customer.socialReason],
-        CONCAT('+',client.ladaPhone,' ',client.phone) AS [customer.phone],
-        client.email AS [customer.email],
-        paymentReminder.contact AS [contact.fullName],
-        paymentReminder.phone AS [contact.phone],
-        paymentReminder.email AS [contact.email],
-        contact.contactID AS [contact.id]
+    SET @sql
+        = '
+SELECT 
+    paymentReminder.id AS id,
+    paymentReminder.folio AS [folio],
+    paymentReminder.partiality AS [partialitie],
+    paymentReminder.emitedDate AS [createdDate],
+    paymentReminder.expirationDate AS [expiration],
+    DATEDIFF(day,paymentReminder.expirationDate,paymentReminder.[indexDate]) AS [expirationDays],
+    paymentReminder.idRule AS [rule],
+    paymentReminder.idTag AS [idTag], 
+    tags.description AS [tag], 
+    paymentReminder.currency AS [currency],
+    paymentReminder.total AS [total],
+    paymentReminder.executive AS [executive],
+    paymentReminder.idClient AS [customer.id],
+    client.shortName AS [customer.shortName],
+    client.socialReason AS [customer.socialReason],
+    CONCAT(''+'',client.ladaPhone,'' '',client.phone) AS [customer.phone],
+    client.email AS [customer.email],
+    paymentReminder.contact AS [contact.fullName],
+    paymentReminder.phone AS [contact.phone],
+    paymentReminder.email AS [contact.email]
+FROM PaymentReminder AS paymentReminder
+LEFT JOIN Customers AS client ON client.customerID = paymentReminder.idClient
+LEFT JOIN PaymentReminderTags AS tags ON tags.id = paymentReminder.idTag
+WHERE 
+    ' + @WHERE_CLAUSE + '
+ORDER BY ' + @setOrder
+          + '
+OFFSET @offset ROWS FETCH NEXT @rowsPerPage ROWS ONLY
+FOR JSON PATH, ROOT(''paymentReminder''), INCLUDE_NULL_VALUES;';
 
-    FROM PaymentReminder AS paymentReminder
-    LEFT JOIN Customers AS client ON client.customerID = paymentReminder.idClient
-    LEFT JOIN LegalDocuments AS invoice ON invoice.id= paymentReminder.idInvoice
-    LEFT JOIN Contacts AS contact ON contact.email = paymentReminder.email
-    LEFT JOIN Documents AS orden ON orden.idDocument = invoice.idDocument
-    LEFT JOIN Users AS executive ON executive.userID = orden.idExecutive
-    WHERE 
-        paymentReminder.indexDate = @date
-        -- AND paymentReminder.idTag IN (
-        --     CASE 
-        --         WHEN @tag IS NULL THEN (SELECT id FROM PaymentReminderTags)
-        --         ELSE @tag
-        --     END
-        -- )
+    PRINT (@sql);
 
-    ORDER BY 
-        CASE WHEN @orderBy = 'ASC' THEN
-            CASE 
-                WHEN @columnOrder='folio' THEN invoice.noDocument
-                WHEN @columnOrder='expedicion' THEN CAST(invoice.createdDate AS nvarchar(50))
-                WHEN @columnOrder='expiracion' THEN CAST(invoice.expirationDate AS nvarchar(50))
-                WHEN @columnOrder='vencidos' THEN DATEDIFF(day,invoice.expirationDate,invoice.createdDate)
-                WHEN @columnOrder='regla' THEN paymentReminder.idRule
-                WHEN @columnOrder='cliente' THEN client.shortName
-                WHEN @columnOrder='total' THEN paymentReminder.total
-                WHEN @columnOrder='tag' THEN paymentReminder.idTag
-            END
-        END ASC,
-        CASE WHEN @orderBy = 'DESC' THEN
-            CASE 
-                WHEN @columnOrder='folio' THEN invoice.noDocument
-                WHEN @columnOrder='expedicion' THEN CAST(invoice.createdDate AS nvarchar(50))
-                WHEN @columnOrder='expiracion' THEN CAST(invoice.expirationDate AS nvarchar(50))
-                WHEN @columnOrder='vencidos' THEN DATEDIFF(day,invoice.expirationDate,invoice.createdDate)
-                WHEN @columnOrder='regla' THEN paymentReminder.idRule
-                WHEN @columnOrder='cliente' THEN client.shortName
-                WHEN @columnOrder='total' THEN paymentReminder.total
-                WHEN @columnOrder='tag' THEN paymentReminder.idTag
-            END
-        END DESC
-    OFFSET @offset ROWS FETCH NEXT @rowsPerPage ROWS ONLY
-    FOR JSON PATH, ROOT('paymentReminder')
+    EXEC sp_executesql @sql,
+                       N'@date DATE, @tag INT, @offset INT, @rowsPerPage INT',
+                       @date,
+                       @tag,
+                       @offset,
+                       @rowsPerPage;
 
     SELECT @pages AS pages;
 END
 
 -- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------
 -- ----------------- ↑↑↑ END ↑↑↑ -----------------------
+

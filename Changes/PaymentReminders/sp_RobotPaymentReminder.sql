@@ -52,6 +52,9 @@ BEGIN
     DECLARE @idInvoiceCxcStatus INT =7;
     DECLARE @idInvoicePartialStatus INT =9;
 
+    DECLARE @idCxcStatus INT =16;
+    DECLARE @idCxcPartialStatus INT =17;
+
 
     DECLARE @idActive INT =1 
     DECLARE @idCustomerType INT =1;
@@ -74,7 +77,7 @@ BEGIN
         phone,
         email
     )
-    SELECT 
+    SELECT DISTINCT
         client.customerID,
         ISNULL(
             (
@@ -126,11 +129,13 @@ BEGIN
         )
     FROM LegalDocuments AS invoice
     LEFT JOIN Customers AS client ON client.customerID= invoice.idCustomer
+    LEFT JOIN Documents AS cxc ON cxc.uuid = invoice.uuid AND cxc.idTypeDocument = 5
     WHERE
         client.[status]= @idActive
         AND client.customerType= @idCustomerType
         AND invoice.idTypeLegalDocument= @idInvoiceType
         AND invoice.idLegalDocumentStatus IN (@idInvoiceCxcStatus,@idInvoicePartialStatus)
+        AND cxc.idStatus IN (@idCxcStatus,@idCxcPartialStatus)
         -- AND DATEDIFF(day,invoice.expirationDate,@today)<=0
         AND invoice.idCustomer IS NOT NULL
 
@@ -150,28 +155,40 @@ BEGIN
         email,
         total,
         residue,
-        currency
+        currency,
+        executive,
+        idCxc,
+        partiality,
+        folio
     )
     SELECT DISTINCT
         invoice.id,
         invoice.idCustomer,
-        invoice.createdDate,
-        invoice.expirationDate,
+        cxc.createdDate,
+        cxc.expirationDate,
         @today,
         1,
         client.contact,
         client.phone,
         client.email,
-        invoice.total,
-        invoice.residue,
-        invoice.currencyCode
+        cxc.totalAmount,
+        cxc.amountToPay,
+        invoice.currencyCode,
+        executive.initials,
+        cxc.idDocument,
+        CONCAT(cxc.currectFaction,'/',cxc.factionsNumber),
+        invoice.noDocument
         
     FROM LegalDocuments AS invoice
     LEFT JOIN @tempClients AS client ON client.idClient = invoice.idCustomer
+    LEFT JOIN Documents AS cxc ON cxc.uuid = invoice.uuid AND cxc.idTypeDocument = 5
+    LEFT JOIN Users AS executive ON executive.userID = cxc.idExecutive
     WHERE 
         invoice.idTypeLegalDocument= @idInvoiceType
         AND invoice.idLegalDocumentStatus IN (@idInvoiceCxcStatus,@idInvoicePartialStatus)
-        AND ABS(DATEDIFF(day,invoice.expirationDate,@today))<=14
+        AND cxc.idStatus IN (@idCxcStatus,@idCxcPartialStatus)
+        AND DATEDIFF(day,cxc.expirationDate,@today)<=0
+        AND DATEDIFF(day,cxc.expirationDate,@today)>=-6
         AND invoice.idCustomer IS NOT NULL
 
 
@@ -187,29 +204,40 @@ BEGIN
         email,
         total,
         residue,
-        currency
+        currency,
+        executive,
+        idCxc,
+        partiality,
+        folio
     )
     SELECT DISTINCT
         invoice.id,
         invoice.idCustomer,
-        invoice.createdDate,
-        invoice.expirationDate,
+        cxc.createdDate,
+        cxc.expirationDate,
         @today,
         2,
         client.contact,
         client.phone,
         client.email,
-        invoice.total,
-        invoice.residue,
-        invoice.currencyCode
+        cxc.totalAmount,
+        cxc.amountToPay,
+        invoice.currencyCode,
+        executive.initials,
+        cxc.idDocument,
+        CONCAT(cxc.currectFaction,'/',cxc.factionsNumber),
+        invoice.noDocument
         
     FROM LegalDocuments AS invoice
     LEFT JOIN @tempClients AS client ON client.idClient = invoice.idCustomer
+    LEFT JOIN Documents AS cxc ON cxc.uuid = invoice.uuid AND cxc.idTypeDocument = 5
+    LEFT JOIN Users AS executive ON executive.userID = cxc.idExecutive
     WHERE 
         invoice.idTypeLegalDocument= @idInvoiceType
         AND invoice.idLegalDocumentStatus IN (@idInvoiceCxcStatus,@idInvoicePartialStatus)
-        AND DATEDIFF(day,invoice.expirationDate,@today)>0
-        AND DATEDIFF(day,invoice.expirationDate,@today)<=30
+        AND cxc.idStatus IN (@idCxcStatus,@idCxcPartialStatus)
+        AND DATEDIFF(day,cxc.expirationDate,@today)>0
+        AND DATEDIFF(day,cxc.expirationDate,@today)<=30
         AND invoice.idCustomer IS NOT NULL
 
 
@@ -225,29 +253,40 @@ BEGIN
         email,
         total,
         residue,
-        currency
+        currency,
+        executive,
+        idCxc,
+        partiality,
+        folio
     )
     SELECT DISTINCT
         invoice.id,
         invoice.idCustomer,
-        invoice.createdDate,
-        invoice.expirationDate,
+        cxc.createdDate,
+        cxc.expirationDate,
         @today,
         3,
         client.contact,
         client.phone,
         client.email,
-        invoice.total,
-        invoice.residue,
-        invoice.currencyCode
+        cxc.totalAmount,
+        cxc.amountToPay,
+        invoice.currencyCode,
+        executive.initials,
+        cxc.idDocument,
+        CONCAT(cxc.currectFaction,'/',cxc.factionsNumber),
+        invoice.noDocument
         
     FROM LegalDocuments AS invoice
     LEFT JOIN @tempClients AS client ON client.idClient = invoice.idCustomer
+    LEFT JOIN Documents AS cxc ON cxc.uuid = invoice.uuid AND cxc.idTypeDocument = 5
+    LEFT JOIN Users AS executive ON executive.userID = cxc.idExecutive
     WHERE 
         invoice.idTypeLegalDocument= @idInvoiceType
         AND invoice.idLegalDocumentStatus IN (@idInvoiceCxcStatus,@idInvoicePartialStatus)
-        AND DATEDIFF(day,invoice.expirationDate,@today)>30
-        AND DATEDIFF(day,invoice.expirationDate,@today)<=60
+        AND cxc.idStatus IN (@idCxcStatus,@idCxcPartialStatus)
+        AND DATEDIFF(day,cxc.expirationDate,@today)>30
+        AND DATEDIFF(day,cxc.expirationDate,@today)<=60
         AND invoice.idCustomer IS NOT NULL
 
     INSERT INTO @reminders (
@@ -262,28 +301,39 @@ BEGIN
         email,
         total,
         residue,
-        currency
+        currency,
+        executive,
+        idCxc,
+        partiality,
+        folio
     )
     SELECT DISTINCT
         invoice.id,
         invoice.idCustomer,
-        invoice.createdDate,
-        invoice.expirationDate,
+        cxc.createdDate,
+        cxc.expirationDate,
         @today,
         4,
         client.contact,
         client.phone,
         client.email,
-        invoice.total,
-        invoice.residue,
-        invoice.currencyCode
+        cxc.totalAmount,
+        cxc.amountToPay,
+        invoice.currencyCode,
+        executive.initials,
+        cxc.idDocument,
+        CONCAT(cxc.currectFaction,'/',cxc.factionsNumber),
+        invoice.noDocument
         
     FROM LegalDocuments AS invoice
     LEFT JOIN @tempClients AS client ON client.idClient = invoice.idCustomer
+    LEFT JOIN Documents AS cxc ON cxc.uuid = invoice.uuid AND cxc.idTypeDocument = 5
+    LEFT JOIN Users AS executive ON executive.userID = cxc.idExecutive
     WHERE 
         invoice.idTypeLegalDocument= @idInvoiceType
         AND invoice.idLegalDocumentStatus IN (@idInvoiceCxcStatus,@idInvoicePartialStatus)
-        AND DATEDIFF(day,invoice.expirationDate,@today)>60
+        AND cxc.idStatus IN (@idCxcStatus,@idCxcPartialStatus)
+        AND DATEDIFF(day,cxc.expirationDate,@today)>60
         AND invoice.idCustomer IS NOT NULL
 
     EXECUTE sp_AddPaymentReminder @reminders;
@@ -306,3 +356,8 @@ END
 
 -- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------
 -- ----------------- ↑↑↑ END ↑↑↑ -----------------------
+-- 
+-- SELECT * FROM DocumentStatus WHERE documentTypeID = 5 AND [status]=1
+-- SELECT * FROM LegalDocuments WHERE noDocument='131'
+-- SELECT * FROM PaymentReminder WHERE idInvoice=926 order by idInvoice
+
