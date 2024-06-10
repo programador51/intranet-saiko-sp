@@ -46,6 +46,7 @@ CREATE PROCEDURE sp_GetProyects(
     @limit INT,
     @noRFQ NVARCHAR(256),
     @buyer NVARCHAR(256),
+    @idClient INT,
     @page INT,
     @status NVARCHAR(256),
     @orderBy NVARCHAR(4)
@@ -71,10 +72,12 @@ BEGIN
         position.umSat
     FROM Proyects AS proyect
     LEFT JOIN PositionsProyects AS position ON proyect.id = position.idProject
+    LEFT JOIN Customer AS client ON proyect.idClient = client.id
     WHERE 
         (@noRFQ IS NULL OR proyect.noRFQ LIKE '%' + @noRFQ + '%') AND
         (@status IS NULL OR proyect.[status] LIKE '%' + @status + '%') AND
         (@buyer IS NULL OR proyect.buyer LIKE '%' + @buyer + '%')
+        AND (@idClient IS NULL OR proyect.idClient = @idClient)
     ORDER BY 
         CASE 
             WHEN @orderBy='ASC' OR @orderBy IS NULL THEN proyect.noRFQ
@@ -95,6 +98,7 @@ BEGIN
         (@noRFQ IS NULL OR proyect.noRFQ LIKE '%' + @noRFQ + '%') AND
         (@status IS NULL OR proyect.[status] LIKE '%' + @status + '%') AND
         (@buyer IS NULL OR proyect.buyer LIKE '%' + @buyer + '%')
+        AND (@idClient IS NULL OR proyect.idClient = @idClient)
     SELECT 
         @pages = CASE WHEN CEILING(@noRecordsFound / @limit) <1 THEN 1 ELSE CEILING(@noRecordsFound / @limit) END;
     SELECT 
