@@ -44,8 +44,7 @@ GO
 -- Description: sp_GetProyects - Get proyects filtered
 CREATE PROCEDURE sp_GetProyects(
     @limit INT,
-    @noRFQ NVARCHAR(256),
-    @buyer NVARCHAR(256),
+    @search NVARCHAR(256),
     @idClient INT,
     @page INT,
     @status NVARCHAR(256),
@@ -57,27 +56,29 @@ BEGIN
     SET NOCOUNT ON
     DECLARE @offsetValue INT;
     SELECT @offsetValue = (@page - 1) * @limit;
+    DECLARE @likeSearch VARCHAR(255) = ISNULL('%' + @search + '%', NULL);
 
     SELECT 
         proyect.id,
         proyect.noRFQ,
-        proyect.closeDate,
         proyect.buyer,
         proyect.solped,
-        position.material,
         position.pos,
-        position.quantity,
-        position.subPos,
-        proyect.[status],
-        position.umSat
+        proyect.[status]
     FROM Proyects AS proyect
     LEFT JOIN PositionsProyects AS position ON proyect.id = position.idProject
-    LEFT JOIN Customer AS client ON proyect.idClient = client.id
+    LEFT JOIN Customers AS client ON proyect.idClient = client.customerID
     WHERE 
-        (@noRFQ IS NULL OR proyect.noRFQ LIKE '%' + @noRFQ + '%') AND
-        (@status IS NULL OR proyect.[status] LIKE '%' + @status + '%') AND
-        (@buyer IS NULL OR proyect.buyer LIKE '%' + @buyer + '%')
+         (
+            @search IS NULL 
+            OR proyect.noRFQ LIKE @likeSearch
+            OR proyect.buyer LIKE @likeSearch
+            OR proyect.solped LIKE @likeSearch
+            OR position.pos LIKE @likeSearch
+            )
+            AND proyect.[status] = @status 
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
+
     ORDER BY 
         CASE 
             WHEN @orderBy='ASC' OR @orderBy IS NULL THEN proyect.noRFQ
@@ -95,9 +96,14 @@ BEGIN
     FROM Proyects AS proyect
     LEFT JOIN PositionsProyects AS position ON proyect.id = position.idProject
     WHERE 
-        (@noRFQ IS NULL OR proyect.noRFQ LIKE '%' + @noRFQ + '%') AND
-        (@status IS NULL OR proyect.[status] LIKE '%' + @status + '%') AND
-        (@buyer IS NULL OR proyect.buyer LIKE '%' + @buyer + '%')
+        (
+            @search IS NULL 
+            OR proyect.noRFQ LIKE @likeSearch
+            OR proyect.buyer LIKE @likeSearch
+            OR proyect.solped LIKE @likeSearch
+            OR position.pos LIKE @likeSearch
+            )
+            AND proyect.[status] = @status 
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
     SELECT 
         @pages = CASE WHEN CEILING(@noRecordsFound / @limit) <1 THEN 1 ELSE CEILING(@noRecordsFound / @limit) END;

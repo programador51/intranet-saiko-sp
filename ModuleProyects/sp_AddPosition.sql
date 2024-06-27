@@ -52,14 +52,12 @@ CREATE PROCEDURE sp_AddPosition
 (
     @description NVARCHAR(MAX),
     @pos NVARCHAR(256),
-    @laborCost DECIMAL(18, 2),
-    @laborSell DECIMAL(18, 2),
-    @material NVARCHAR(MAX),
+    @cost DECIMAL(18, 2),
+    @sell DECIMAL(18, 2),
+    @ivaCostRate INT,
+    @ivaSellRate INT,
     @ocCustomer NVARCHAR(256),
     @percentageOfCompletion DECIMAL(5, 2),
-    @quantity INT,
-    @subPos NVARCHAR(256),
-    @umSat NVARCHAR(50),
     @idProject INT,
     @createdBy NVARCHAR(256),
     @updatedBy NVARCHAR(256)
@@ -85,33 +83,31 @@ BEGIN
         INSERT INTO PositionsProyects(
             [description],
             pos,
-            laborCost,laborSell,
-            material,
             ocCustomer,
             percentageOfCompletion,
-            quantity,
             [status],
-            subPos,
-            umSat,
             idProject,
             createdBy,
-            updatedBy
+            updatedBy,
+            cost,
+            sell,
+            ivaCostRate,
+            ivaSellRate
             )
         VALUES (
             @description,
             @pos,
-            @laborCost,
-            @laborSell,
-            @material,
             @ocCustomer,
             @percentageOfCompletion,
-            @quantity,
             @status,
-            @subPos,
-            @umSat,
             @idProject,
             @createdBy,
-            @updatedBy
+            @updatedBy,
+            @cost,
+            @sell,
+            @ivaCostRate,
+            @ivaSellRate
+
         )
         SELECT SCOPE_IDENTITY() AS idPosition;
 

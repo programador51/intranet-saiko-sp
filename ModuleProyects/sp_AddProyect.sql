@@ -55,7 +55,6 @@ CREATE PROCEDURE sp_AddProyect(
     @buyer NVARCHAR(1000),
     @idClient INT,
     @buyerEmail NVARCHAR(1000),
-    @closeDate DATE,
     @comments NVARCHAR(MAX),
     @link NVARCHAR(1000),
     @noRFQ NVARCHAR(256),
@@ -75,7 +74,7 @@ BEGIN
     DECLARE @tranName NVARCHAR(50)='addProyect';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
-    DECLARE @status NVARCHAR(50)='Solicitud';
+    DECLARE @status NVARCHAR(50)='SolicitudNormal';
     BEGIN TRY
         IF (@trancount= 0)
                 BEGIN
@@ -86,12 +85,16 @@ BEGIN
                     SAVE TRANSACTION @tranName
                 END
 
+        IF(@solped IS NULL)
+            BEGIN
+                SET @status = 'SolicitudUrgente';
+            END
+
 
         INSERT INTO Proyects (
             buyer,
             idClient,
             buyerEmail,
-            closeDate,
             comments,
             link,
             noRFQ,
@@ -109,7 +112,6 @@ BEGIN
             @buyer,
             @idClient,
             @buyerEmail,
-            @closeDate,
             @comments,
             @link,
             @noRFQ,

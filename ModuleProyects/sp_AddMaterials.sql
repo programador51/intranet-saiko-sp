@@ -54,11 +54,8 @@ CREATE PROCEDURE sp_AddMaterials(
     @idPosition INT,
     @idProyect INT,
     @idSupplier INT,
-    @labourCost DECIMAL(20,4),
-    @labourPrice DECIMAL(20,4),
     @initialQuantity INT,
     @sell DECIMAL(20,4),
-    @subPos NVARCHAR(256),
     @createdBy NVARCHAR(256)
 ) AS 
 BEGIN
@@ -85,11 +82,8 @@ BEGIN
             idPosition,
             idProyect,
             idSupplier,
-            labourCost,
-            labourPrice,
             initialQuantity,
             sell,
-            subPos,
             createdBy,
             updatedBy
         )VALUES(
@@ -98,11 +92,8 @@ BEGIN
             @idPosition,
             @idProyect,
             @idSupplier,
-            @labourCost,
-            @labourPrice,
             @initialQuantity,
             @sell,
-            @subPos,
             @createdBy,
             @createdBy
         );

@@ -11,8 +11,6 @@
 -- PARAMETERS:
 -- @id INT - Id
 -- @percentageOfCompletion DECIMAL(5,2) - Percentage of completion
--- @laborCost DECIMAL(20,4) - Labor cost
--- @laborSell DECIMAL(20,4) - Labor sell
 -- @ocCustomer VARCHAR(256) - OC customer
 -- @updatedBy VARCHAR(256) - Updated by
 -- ===================================================================================================================================
@@ -46,10 +44,12 @@ GO
 CREATE PROCEDURE sp_UpdatePosition(
     @id INT,
     @percentageOfCompletion DECIMAL(5,2),
-    @laborCost DECIMAL(20,4),
-    @laborSell DECIMAL(20,4),
     @ocCustomer VARCHAR(256),
-    @updatedBy VARCHAR(256)
+    @updatedBy VARCHAR(256),
+    @cost DECIMAL(20, 4),
+    @sell DECIMAL(20, 4),
+    @ivaCostRate INT,
+    @ivaSellRate INT
 ) AS 
 BEGIN
 
@@ -71,11 +71,14 @@ BEGIN
 
         UPDATE PositionsProyects SET 
             percentageOfCompletion = @percentageOfCompletion,
-            laborCost = @laborCost,
-            laborSell = @laborSell,
             ocCustomer = @ocCustomer,
             updatedBy = @updatedBy,
-            updatedDate = @updateDate
+            updatedDate = @updateDate,
+            cost = @cost,
+            sell = @sell,
+            ivaCostRate = @ivaCostRate,
+            ivaSellRate = @ivaSellRate
+            
         WHERE id = @id;
 
         IF (@trancount=0)

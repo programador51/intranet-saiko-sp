@@ -19,7 +19,6 @@
 -- @currentCost DECIMAL(20,4) - Current cost of the materials
 -- @solped NVARCHAR(256) - Solped
 -- @position NVARCHAR(256) - Position
--- @subPosition NVARCHAR(256) - Subposition
 -- @client NVARCHAR(256) - Client
 -- ===================================================================================================================================
 -- Returns: 
@@ -59,13 +58,12 @@ BEGIN
 
     DECLARE @solped NVARCHAR(256);
     DECLARE @position NVARCHAR(256);
-    DECLARE @subPosition NVARCHAR(256);
     DECLARE @client NVARCHAR(256);
 
     SELECT 
         @totalCost = SUM(material.totalCost),
-        @residueCost = SUM((material.residueQuantity * material.labourCost) + (material.residueQuantity* material.cost)),
-        @currentCost = SUM((material.currentQuantity * material.labourCost) + (material.currentQuantity* material.cost))
+        @residueCost = SUM((material.residueQuantity* material.cost)),
+        @currentCost = SUM((material.currentQuantity* material.cost))
     FROM Materials AS material
     WHERE 
         material.idProyect = @idProyect 
@@ -75,7 +73,6 @@ BEGIN
     SELECT 
         @solped = proyect.solped,
         @position = position.pos,
-        @subPosition = position.subPos,
         @client = proyect.buyer
     FROM PositionsProyects AS position
     LEFT JOIN Proyects AS proyect ON position.idProject = proyect.id
@@ -91,15 +88,12 @@ BEGIN
         material.residueQuantity,
         material.cost,
         material.sell,
-        material.labourCost,
-        material.labourPrice,
         material.idSupplier,
         proveedor.socialReason AS supplier,
         material.id,
         material.idCatalogue,
         material.idPosition,
-        material.idProyect,
-        material.subPos
+        material.idProyect
     FROM Materials AS material
     LEFT JOIN Catalogue AS catalogue ON material.idCatalogue = catalogue.id_code
     LEFT JOIN Customers AS proveedor ON material.idSupplier = proveedor.customerID
@@ -111,7 +105,6 @@ BEGIN
     SELECT 
         @solped AS solped,
         @position AS pos,
-        @subPosition AS subPos,
         @client AS buyer,
         @totalCost AS totalCost,
         @residueCost AS residueCost,
