@@ -15,3 +15,5 @@ ALTER TABLE PositionsProyects ADD totalCost AS CAST((cost + ivaCostAmount) AS DE
 GO
 ALTER TABLE PositionsProyects ADD totalSell AS CAST((sell + ivaSellAmount) AS DECIMAL(20,4)) PERSISTED;
 GO
+ALTER TABLE PositionsProyects ADD idUen INT NOT NULL
+GO
