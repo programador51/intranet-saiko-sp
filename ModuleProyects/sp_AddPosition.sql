@@ -60,7 +60,12 @@ CREATE PROCEDURE sp_AddPosition
     @percentageOfCompletion DECIMAL(5, 2),
     @idProject INT,
     @createdBy NVARCHAR(256),
-    @updatedBy NVARCHAR(256)
+    @updatedBy NVARCHAR(256),
+    @idUen INT,
+    @staKey NVARCHAR(256),
+    @staDescription NVARCHAR(256),
+    @um NVARCHAR(256),
+    @umDescription NVARCHAR(256)
 )
 AS 
 BEGIN
@@ -92,7 +97,12 @@ BEGIN
             cost,
             sell,
             ivaCostRate,
-            ivaSellRate
+            ivaSellRate,
+            idUen,
+            staKey,
+            staDescription,
+            um,
+            umDescription
             )
         VALUES (
             @description,
@@ -106,7 +116,12 @@ BEGIN
             @cost,
             @sell,
             @ivaCostRate,
-            @ivaSellRate
+            @ivaSellRate,
+            @idUen,
+            @staKey,
+            @staDescription,
+            @um,
+            @umDescription
 
         )
         SELECT SCOPE_IDENTITY() AS idPosition;

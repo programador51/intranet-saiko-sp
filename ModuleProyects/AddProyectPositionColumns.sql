@@ -17,3 +17,12 @@ ALTER TABLE PositionsProyects ADD totalSell AS CAST((sell + ivaSellAmount) AS DE
 GO
 ALTER TABLE PositionsProyects ADD idUen INT NOT NULL
 GO
+
+ALTER TABLE PositionsProyects ADD staKey NVARCHAR(256) NOT NULL
+GO
+ALTER TABLE PositionsProyects ADD staDescription NVARCHAR(256) NOT NULL
+GO
+ALTER TABLE PositionsProyects ADD um NVARCHAR(256) NOT NULL
+GO
+ALTER TABLE PositionsProyects ADD umDescription NVARCHAR(256) NOT NULL
+GO

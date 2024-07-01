@@ -1,0 +1,1 @@
+ALTER TABLE DocumentItems ADD receivedMaterials INT NOT NULL DEFAULT 0;

@@ -87,16 +87,23 @@ BEGIN
         material.initialQuantity,
         material.residueQuantity,
         material.cost,
-        material.sell,
-        material.idSupplier,
-        proveedor.socialReason AS supplier,
         material.id,
         material.idCatalogue,
         material.idPosition,
-        material.idProyect
+        material.idProyect,
+        (
+            SELECT 
+                SUM(item.receivedMaterials)
+            FROM DocumentItems AS item
+            LEFT JOIN Documents AS document ON material.idPosition = document.idPosition
+            WHERE 
+                document.[idStatus] !=12 
+                AND document.idTypeDocument = 3 
+                AND item.idCatalogue = material.idCatalogue
+                AND material.idPosition = document.idPosition
+        )AS receivedMaterials
     FROM Materials AS material
     LEFT JOIN Catalogue AS catalogue ON material.idCatalogue = catalogue.id_code
-    LEFT JOIN Customers AS proveedor ON material.idSupplier = proveedor.customerID
     WHERE 
         material.idProyect = @idProyect 
         AND material.idPosition = @idPosition
@@ -113,3 +120,10 @@ END
 
 -- ----------------- ↓↓↓ BEGIN ↓↓↓ -----------------------
 -- ----------------- ↑↑↑ END ↑↑↑ -----------------------
+
+
+/**
+Para obtener la cantidad de materiales recibidos
+Tengo que sumar la cantidad de materiales recibidos de cada orden de compra relacionada a la posicion del proyecto
+Tengo que identificar las ordenes de compra relacionadas a la posicion del proyecto
+**/

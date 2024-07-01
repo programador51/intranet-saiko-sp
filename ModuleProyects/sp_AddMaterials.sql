@@ -53,7 +53,6 @@ CREATE PROCEDURE sp_AddMaterials(
     @idCatalogue INT,
     @idPosition INT,
     @idProyect INT,
-    @idSupplier INT,
     @initialQuantity INT,
     @sell DECIMAL(20,4),
     @createdBy NVARCHAR(256)
@@ -81,7 +80,6 @@ BEGIN
             idCatalogue,
             idPosition,
             idProyect,
-            idSupplier,
             initialQuantity,
             sell,
             createdBy,
@@ -91,7 +89,6 @@ BEGIN
             @idCatalogue,
             @idPosition,
             @idProyect,
-            @idSupplier,
             @initialQuantity,
             @sell,
             @createdBy,

@@ -9,7 +9,6 @@ CREATE TABLE Materials (
     idCatalogue INT NOT NULL,
     idPosition INT NOT NULL,
     idProyect INT NOT NULL,
-    idSupplier INT NOT NULL,
     initialQuantity INT NOT NULL,
     residueQuantity AS initialQuantity - currentQuantity, -- Autocalculado
     sell DECIMAL(20,4) NOT NULL,

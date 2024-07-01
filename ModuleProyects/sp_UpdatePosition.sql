@@ -49,7 +49,12 @@ CREATE PROCEDURE sp_UpdatePosition(
     @cost DECIMAL(20, 4),
     @sell DECIMAL(20, 4),
     @ivaCostRate INT,
-    @ivaSellRate INT
+    @ivaSellRate INT,
+    @idUen INT,
+    @staKey NVARCHAR(256),
+    @staDescription NVARCHAR(256),
+    @um NVARCHAR(256),
+    @umDescription NVARCHAR(256)
 ) AS 
 BEGIN
 
@@ -77,7 +82,12 @@ BEGIN
             cost = @cost,
             sell = @sell,
             ivaCostRate = @ivaCostRate,
-            ivaSellRate = @ivaSellRate
+            ivaSellRate = @ivaSellRate,
+            idUen = @idUen,
+            staKey = @staKey,
+            staDescription = @staDescription,
+            um = @um,
+            umDescription = @umDescription
             
         WHERE id = @id;
 

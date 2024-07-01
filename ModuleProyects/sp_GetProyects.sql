@@ -63,10 +63,8 @@ BEGIN
         proyect.noRFQ,
         proyect.buyer,
         proyect.solped,
-        position.pos,
         proyect.[status]
     FROM Proyects AS proyect
-    LEFT JOIN PositionsProyects AS position ON proyect.id = position.idProject
     LEFT JOIN Customers AS client ON proyect.idClient = client.customerID
     WHERE 
          (
@@ -74,7 +72,6 @@ BEGIN
             OR proyect.noRFQ LIKE @likeSearch
             OR proyect.buyer LIKE @likeSearch
             OR proyect.solped LIKE @likeSearch
-            OR position.pos LIKE @likeSearch
             )
             AND proyect.[status] = @status 
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
@@ -94,14 +91,12 @@ BEGIN
     SELECT 
         @noRecordsFound = COUNT(*) 
     FROM Proyects AS proyect
-    LEFT JOIN PositionsProyects AS position ON proyect.id = position.idProject
     WHERE 
         (
             @search IS NULL 
             OR proyect.noRFQ LIKE @likeSearch
             OR proyect.buyer LIKE @likeSearch
             OR proyect.solped LIKE @likeSearch
-            OR position.pos LIKE @likeSearch
             )
             AND proyect.[status] = @status 
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
