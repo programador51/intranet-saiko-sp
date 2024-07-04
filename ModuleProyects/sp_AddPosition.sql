@@ -62,8 +62,8 @@ CREATE PROCEDURE sp_AddPosition
     @createdBy NVARCHAR(256),
     @updatedBy NVARCHAR(256),
     @idUen INT,
-    @staKey NVARCHAR(256),
-    @staDescription NVARCHAR(256),
+    @satKey NVARCHAR(256),
+    @satDescription NVARCHAR(256),
     @um NVARCHAR(256),
     @umDescription NVARCHAR(256)
 )
@@ -73,7 +73,7 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @tranName NVARCHAR(50) = 'addPosition';
     DECLARE @trancount INT;
-    DECLARE @status NVARCHAR(50) = 'Activo';
+    DECLARE @status NVARCHAR(50) = 'SolicitudNormal';
     SET @trancount = @@trancount;
     BEGIN TRY
         IF (@trancount = 0)
@@ -85,12 +85,17 @@ BEGIN
                 SAVE TRANSACTION @tranName;
             END
 
+        IF(@ocCustomer IS NULL)
+            BEGIN
+                SET @status = 'SolicitudUrgente';
+            END
+
         INSERT INTO PositionsProyects(
             [description],
             pos,
             ocCustomer,
             percentageOfCompletion,
-            [status],
+            [statusPosition],
             idProject,
             createdBy,
             updatedBy,
@@ -99,8 +104,8 @@ BEGIN
             ivaCostRate,
             ivaSellRate,
             idUen,
-            staKey,
-            staDescription,
+            satKey,
+            satDescription,
             um,
             umDescription
             )
@@ -118,8 +123,8 @@ BEGIN
             @ivaCostRate,
             @ivaSellRate,
             @idUen,
-            @staKey,
-            @staDescription,
+            @satKey,
+            @satDescription,
             @um,
             @umDescription
 
@@ -161,3 +166,4 @@ BEGIN
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
     END CATCH
 END;
+

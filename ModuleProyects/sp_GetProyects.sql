@@ -63,7 +63,8 @@ BEGIN
         proyect.noRFQ,
         proyect.buyer,
         proyect.solped,
-        proyect.[status]
+        proyect.[statusProyect] AS [statusProyect],
+        proyect.[status] AS [status]
     FROM Proyects AS proyect
     LEFT JOIN Customers AS client ON proyect.idClient = client.customerID
     WHERE 
@@ -73,7 +74,7 @@ BEGIN
             OR proyect.buyer LIKE @likeSearch
             OR proyect.solped LIKE @likeSearch
             )
-            AND proyect.[status] = @status 
+            AND proyect.[status] = @status
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
 
     ORDER BY 

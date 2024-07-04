@@ -74,7 +74,6 @@ BEGIN
     DECLARE @tranName NVARCHAR(50)='addProyect';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
-    DECLARE @status NVARCHAR(50)='SolicitudNormal';
     BEGIN TRY
         IF (@trancount= 0)
                 BEGIN
@@ -84,11 +83,6 @@ BEGIN
                 BEGIN
                     SAVE TRANSACTION @tranName
                 END
-
-        IF(@solped IS NULL)
-            BEGIN
-                SET @status = 'SolicitudUrgente';
-            END
 
 
         INSERT INTO Proyects (
@@ -105,8 +99,7 @@ BEGIN
             userEmail,
             userPhone,
             createdBy,
-            updatedBy,
-            [status]
+            updatedBy
         )
         VALUES (
             @buyer,
@@ -122,8 +115,7 @@ BEGIN
             @userEmail,
             @userPhone,
             @createdBy,
-            @updatedBy,
-            @status
+            @updatedBy
         )
         SELECT SCOPE_IDENTITY() AS idProyect;
 

@@ -3,20 +3,18 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 06-10-2024
--- Description: Update a position
--- STORED PROCEDURE NAME:	sp_UpdatePosition
+-- Create date: 07-02-2024
+-- Description: Update the quantity of recived materials
+-- STORED PROCEDURE NAME:	sp_UpdateRecivedMaterials
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @id INT - Id
--- @percentageOfCompletion DECIMAL(5,2) - Percentage of completion
--- @ocCustomer VARCHAR(256) - OC customer
--- @updatedBy VARCHAR(256) - Updated by
+-- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @updateDate DATETIME - Update date
+-- @idItem: The id of the item
+-- @recivedMaterialQuantity: The quantity of recived materials
 -- ===================================================================================================================================
 -- Returns: 
 -- =============================================
@@ -25,12 +23,12 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-06-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-07-02		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_UpdatePosition')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_UpdateRecivedMaterials')
     BEGIN 
 
-        DROP PROCEDURE sp_UpdatePosition;
+        DROP PROCEDURE sp_UpdateRecivedMaterials;
     END
 GO
 SET ANSI_NULLS ON
@@ -39,30 +37,17 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 06/10/2024
--- Description: sp_UpdatePosition - Update a position
-CREATE PROCEDURE sp_UpdatePosition(
-    @id INT,
-    @percentageOfCompletion DECIMAL(5,2),
-    @ocCustomer VARCHAR(256),
-    @updatedBy VARCHAR(256),
-    @cost DECIMAL(20, 4),
-    @sell DECIMAL(20, 4),
-    @ivaCostRate INT,
-    @ivaSellRate INT,
-    @idUen INT,
-    @satKey NVARCHAR(256),
-    @satDescription NVARCHAR(256),
-    @um NVARCHAR(256),
-    @umDescription NVARCHAR(256),
-    @description NVARCHAR(256)
+-- Create Date: 07/02/2024
+-- Description: sp_UpdateRecivedMaterials - Update the quantity of recived materials
+CREATE PROCEDURE sp_UpdateRecivedMaterials(
+    @idItem INT,
+    @recivedMaterialQuantity INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    DECLARE @updateDate DATETIME = GETUTCDATE();
-    DECLARE @tranName NVARCHAR(50)='updatePosition';
+    DECLARE @tranName NVARCHAR(50)='updateRecivedMaterials';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
     BEGIN TRY
@@ -75,27 +60,12 @@ BEGIN
                     SAVE TRANSACTION @tranName
                 END
 
-        UPDATE PositionsProyects SET 
-            percentageOfCompletion = @percentageOfCompletion,
-            ocCustomer = @ocCustomer,
-            updatedBy = @updatedBy,
-            updatedDate = @updateDate,
-            cost = @cost,
-            sell = @sell,
-            ivaCostRate = @ivaCostRate,
-            ivaSellRate = @ivaSellRate,
-            idUen = @idUen,
-            satKey = @satKey,
-            satDescription = @satDescription,
-            um = @um,
-            umDescription = @umDescription,
-            [description] = @description
-            
-        WHERE id = @id;
 
-        IF (@trancount=0)
+        UPDATE DocumentsItems SET receivedMaterials= receivedMaterials + @recivedMaterialQuantity WHERE idItem=@idItem;
+        
+        IF (@trancount = 0)
             BEGIN
-                COMMIT TRANSACTION @tranName
+                COMMIT TRANSACTION @tranName;
             END
     END TRY
     BEGIN CATCH
@@ -127,7 +97,6 @@ BEGIN
         RAISERROR(@Message, @Severity, @State);
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
     END CATCH
-
 
 END
 
