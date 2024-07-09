@@ -65,7 +65,8 @@ CREATE PROCEDURE sp_AddPosition
     @satKey NVARCHAR(256),
     @satDescription NVARCHAR(256),
     @um NVARCHAR(256),
-    @umDescription NVARCHAR(256)
+    @umDescription NVARCHAR(256),
+    @statusPosition NVARCHAR(256)
 )
 AS 
 BEGIN
@@ -73,7 +74,6 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @tranName NVARCHAR(50) = 'addPosition';
     DECLARE @trancount INT;
-    DECLARE @status NVARCHAR(50) = 'SolicitudNormal';
     SET @trancount = @@trancount;
     BEGIN TRY
         IF (@trancount = 0)
@@ -85,17 +85,11 @@ BEGIN
                 SAVE TRANSACTION @tranName;
             END
 
-        IF(@ocCustomer IS NULL)
-            BEGIN
-                SET @status = 'SolicitudUrgente';
-            END
-
         INSERT INTO PositionsProyects(
             [description],
             pos,
             ocCustomer,
             percentageOfCompletion,
-            [statusPosition],
             idProject,
             createdBy,
             updatedBy,
@@ -107,14 +101,14 @@ BEGIN
             satKey,
             satDescription,
             um,
-            umDescription
+            umDescription,
+            statusPosition
             )
         VALUES (
             @description,
             @pos,
             @ocCustomer,
             @percentageOfCompletion,
-            @status,
             @idProject,
             @createdBy,
             @updatedBy,
@@ -126,7 +120,8 @@ BEGIN
             @satKey,
             @satDescription,
             @um,
-            @umDescription
+            @umDescription,
+            @statusPosition
 
         )
         SELECT SCOPE_IDENTITY() AS idPosition;

@@ -3,20 +3,18 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 06-10-2024
--- Description: Update a position
--- STORED PROCEDURE NAME:	sp_UpdatePosition
+-- Create date: 07-08-2024
+-- Description: Update proyect position status
+-- STORED PROCEDURE NAME:	sp_UpdateProyectPositionStatus
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @id INT - Id
--- @percentageOfCompletion DECIMAL(5,2) - Percentage of completion
--- @ocCustomer VARCHAR(256) - OC customer
--- @updatedBy VARCHAR(256) - Updated by
+-- @idPosition INT - Id position
+-- @updatedBy NVARCHAR(256) - Updated by
+-- @statusPosition NVARCHAR(256) - Status position
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @updateDate DATETIME - Update date
 -- ===================================================================================================================================
 -- Returns: 
 -- =============================================
@@ -25,12 +23,12 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-06-10		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-07-08		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_UpdatePosition')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_UpdateProyectPositionStatus')
     BEGIN 
 
-        DROP PROCEDURE sp_UpdatePosition;
+        DROP PROCEDURE sp_UpdateProyectPositionStatus;
     END
 GO
 SET ANSI_NULLS ON
@@ -39,24 +37,11 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 06/10/2024
--- Description: sp_UpdatePosition - Update a position
-CREATE PROCEDURE sp_UpdatePosition(
-    @id INT,
-    @percentageOfCompletion DECIMAL(5,2),
-    @ocCustomer VARCHAR(256),
-    @updatedBy VARCHAR(256),
-    @cost DECIMAL(20, 4),
-    @sell DECIMAL(20, 4),
-    @ivaCostRate INT,
-    @ivaSellRate INT,
-    @idUen INT,
-    @satKey NVARCHAR(256),
-    @satDescription NVARCHAR(256),
-    @um NVARCHAR(256),
-    @umDescription NVARCHAR(256),
-    @description NVARCHAR(256),
-    @pos NVARCHAR(256),
+-- Create Date: 07/08/2024
+-- Description: sp_UpdateProyectPositionStatus - Update proyect position status
+CREATE PROCEDURE sp_UpdateProyectPositionStatus(
+    @idPosition INT,
+    @updatedBy NVARCHAR(256),
     @statusPosition NVARCHAR(256)
 ) AS 
 BEGIN
@@ -64,7 +49,7 @@ BEGIN
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
     DECLARE @updateDate DATETIME = GETUTCDATE();
-    DECLARE @tranName NVARCHAR(50)='updatePosition';
+    DECLARE @tranName NVARCHAR(50)='updatePositionStatus';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
     BEGIN TRY
@@ -77,30 +62,17 @@ BEGIN
                     SAVE TRANSACTION @tranName
                 END
 
-        UPDATE PositionsProyects SET 
-            percentageOfCompletion = @percentageOfCompletion,
-            ocCustomer = @ocCustomer,
-            updatedBy = @updatedBy,
-            updatedDate = @updateDate,
-            cost = @cost,
-            sell = @sell,
-            ivaCostRate = @ivaCostRate,
-            ivaSellRate = @ivaSellRate,
-            idUen = @idUen,
-            satKey = @satKey,
-            satDescription = @satDescription,
-            um = @um,
-            umDescription = @umDescription,
-            [description] = @description,
-            pos=@pos,
-            statusPosition=@statusPosition
-            
-        WHERE id = @id;
+            UPDATE PositionsProyects SET 
+                statusPosition = @statusPosition,
+                updatedBy = @updatedBy,
+                updatedDate = @updateDate
+            WHERE 
+                id = @idPosition;
 
         IF (@trancount=0)
-            BEGIN
-                COMMIT TRANSACTION @tranName
-            END
+                BEGIN
+                    COMMIT TRANSACTION @tranName
+                END
     END TRY
     BEGIN CATCH
         DECLARE @Severity  INT= ERROR_SEVERITY()
@@ -131,7 +103,6 @@ BEGIN
         RAISERROR(@Message, @Severity, @State);
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
     END CATCH
-
 
 END
 

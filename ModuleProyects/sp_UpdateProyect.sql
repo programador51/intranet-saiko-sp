@@ -48,14 +48,20 @@ GO
 -- Description: sp_UpdateProyect - Update a proyect
 CREATE PROCEDURE sp_UpdateProyect(
     @id INT,
+    @idClient INT,
     @buyerEmail NVARCHAR(1000),
+    @link NVARCHAR(1000),
+    @solped NVARCHAR(1000),
     @buyerPhone NVARCHAR(15),
     @user NVARCHAR(256),
+    @noRFQ NVARCHAR(256),
     @userEmail NVARCHAR(256),
     @userPhone NVARCHAR(15),
     @comments NVARCHAR(MAX),
     @status NVARCHAR(255),
-    @updatedBy NVARCHAR(256)
+    @updatedBy NVARCHAR(256),
+    @title NVARCHAR(256),
+    @buyer NVARCHAR(256)
 ) AS 
 BEGIN
 
@@ -76,15 +82,19 @@ BEGIN
                 END
 
         UPDATE Proyects SET 
-            buyerEmail = @buyerEmail,
-            buyerPhone = @buyerPhone,
-            [user] = @user,
-            userEmail = @userEmail,
-            userPhone = @userPhone,
-            comments = @comments,
-            [status] = @status,
-            updatedBy = @updatedBy,
-            updatedDate = @updateDate
+            buyer= @buyer,
+            idClient= @idClient,
+            buyerEmail= @buyerEmail,
+            comments= @comments,
+            link= @link,
+            noRFQ= @noRFQ,
+            solped= @solped,
+            title= @title,
+            buyerPhone= @buyerPhone,
+            [user]= @user,
+            userEmail= @userEmail,
+            userPhone= @userPhone,
+            updatedBy= @updatedBy
         WHERE id = @id;
 
 

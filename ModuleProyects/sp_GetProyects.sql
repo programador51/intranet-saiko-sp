@@ -64,7 +64,8 @@ BEGIN
         proyect.buyer,
         proyect.solped,
         proyect.[statusProyect] AS [statusProyect],
-        proyect.[status] AS [status]
+        proyect.[status] AS [status],
+        client.socialReason AS client
     FROM Proyects AS proyect
     LEFT JOIN Customers AS client ON proyect.idClient = client.customerID
     WHERE 
@@ -74,7 +75,10 @@ BEGIN
             OR proyect.buyer LIKE @likeSearch
             OR proyect.solped LIKE @likeSearch
             )
-            AND proyect.[status] = @status
+            AND (
+               
+                proyect.[statusProyect] = @status
+            )
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
 
     ORDER BY 
@@ -99,7 +103,10 @@ BEGIN
             OR proyect.buyer LIKE @likeSearch
             OR proyect.solped LIKE @likeSearch
             )
-            AND proyect.[status] = @status 
+             AND (
+               
+                proyect.[statusProyect] = @status
+            )
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
     SELECT 
         @pages = CASE WHEN CEILING(@noRecordsFound / @limit) <1 THEN 1 ELSE CEILING(@noRecordsFound / @limit) END;
