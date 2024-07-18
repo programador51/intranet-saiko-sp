@@ -14,6 +14,7 @@ CREATE TABLE Materials (
     sell DECIMAL(20,4) NOT NULL,
     totalCost AS CAST((initialQuantity* cost) AS DECIMAL(20,4)), -- Autocalculado
     totalSell AS CAST((initialQuantity* sell) AS DECIMAL(20,4)), -- Autocalculado
+    [description] NVARCHAR(256) NOT NULL DEFAULT 'No description',
     updatedBy NVARCHAR(256),
     updatedDate DATETIME DEFAULT GETUTCDATE(),
     [status] BIT NOT NULL DEFAULT 1,

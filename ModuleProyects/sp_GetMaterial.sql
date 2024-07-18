@@ -3,13 +3,13 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 07-02-2024
--- Description: Relationate a material with a ODC
--- STORED PROCEDURE NAME:	sp_AddMaterialToOdc
+-- Create date: 07-12-2024
+-- Description: Get material by id
+-- STORED PROCEDURE NAME:	sp_GetMaterial
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @customerRFC: The RFC provider from the legal document
+-- @idMaterial INT - Id of the material to fetch
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
@@ -21,12 +21,12 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-07-02		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-07-12		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_AddMaterialToOdc')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetMaterial')
     BEGIN 
 
-        DROP PROCEDURE sp_AddMaterialToOdc;
+        DROP PROCEDURE sp_GetMaterial;
     END
 GO
 SET ANSI_NULLS ON
@@ -35,15 +35,16 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 07/02/2024
--- Description: sp_AddMaterialToOdc - Relationate a material with a ODC
-CREATE PROCEDURE sp_AddMaterialToOdc(
-    @variable INT
+-- Create Date: 07/12/2024
+-- Description: sp_GetMaterial - Gets the material by id
+CREATE PROCEDURE sp_GetMaterial(
+    @idMaterial INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+    SELECT * FROM Materials WHERE id = @idMaterial;
 
 END
 

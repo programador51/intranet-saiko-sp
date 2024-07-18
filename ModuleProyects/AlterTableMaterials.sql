@@ -1,0 +1,1 @@
+ALTER TABLE Materials ADD [description] NVARCHAR(256) NOT NULL DEFAULT 'No description';

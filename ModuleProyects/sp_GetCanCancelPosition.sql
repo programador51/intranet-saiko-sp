@@ -62,6 +62,8 @@ BEGIN
     WHERE 
         id = @idPosition;
 
+   PRINT('CAN CANCEL: ' + CAST(@canCancel AS VARCHAR));
+
     
     SELECT 
         @positionHasOc = CASE 
@@ -73,6 +75,8 @@ BEGIN
         idPosition = @idPosition
         AND idTypeDocument = 3
         AND idStatus != 12;
+
+        PRINT('HAS OC: ' + CAST(@positionHasOc AS VARCHAR));
 
 
     SELECT 
@@ -86,6 +90,8 @@ BEGIN
         AND idTypeDocument = 2
         AND idStatus != 6;
 
+        PRINT('HAS REMISION: ' + CAST(@positionHasRemisions AS VARCHAR));
+
 
 
     SELECT 
@@ -94,6 +100,7 @@ BEGIN
             ELSE 0
         END;
 
+        PRINT('HAS OC: ' + CAST(@canCancelPosition AS VARCHAR));
 
 
     SELECT @canCancelPosition as canCancelPosition
