@@ -3,8 +3,8 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 07-02-2024
--- Description: Update the quantity of recived materials
+-- Create date: 07-22-2024
+-- Description: 
 -- STORED PROCEDURE NAME:	sp_UpdateRecivedMaterials
 -- **************************************************************************************************************************************************
 -- =============================================
@@ -13,17 +13,18 @@
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @idItem: The id of the item
--- @recivedMaterialQuantity: The quantity of recived materials
 -- ===================================================================================================================================
 -- Returns: 
+-- @ErrorOccurred: Identify if any error occurred
+-- @Message: The reply message
+-- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-07-02		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-07-22		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_UpdateRecivedMaterials')
     BEGIN 
@@ -37,16 +38,19 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 07/02/2024
--- Description: sp_UpdateRecivedMaterials - Update the quantity of recived materials
+-- Create Date: 07/22/2024
+-- Description: sp_UpdateRecivedMaterials - Some Notes
 CREATE PROCEDURE sp_UpdateRecivedMaterials(
-    @idItem INT,
-    @recivedMaterialQuantity INT
+    @idMaterial INT,
+    @idOdc INT,
+    @quantityToRecive INT,
+    @updatedBy NVARCHAR(30)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
+
     DECLARE @tranName NVARCHAR(50)='updateRecivedMaterials';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
@@ -61,7 +65,12 @@ BEGIN
                 END
 
 
-        UPDATE DocumentsItems SET receivedMaterials= receivedMaterials + @recivedMaterialQuantity WHERE idItem=@idItem;
+        UPDATE DocumentsItems SET 
+            receivedMaterials= receivedMaterials + @quantityToRecive,
+            updatedBy=@updatedBy
+        WHERE 
+            idMaterial=@idMaterial 
+            AND document =@idOdc;
         
         IF (@trancount = 0)
             BEGIN
