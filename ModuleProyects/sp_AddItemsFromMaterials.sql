@@ -90,7 +90,15 @@ BEGIN
     DECLARE @cost DECIMAL(14,4);
     DECLARE @sell DECIMAL(14,4);
     DECLARE @description NVARCHAR(256)
+    
     DECLARE @idCatalogue INT;
+       SELECT 
+        @cost = cost,
+        @sell = sell,
+        @description = [description],
+        @idCatalogue = idCatalogue
+    FROM Materials WHERE id = @idMaterial;
+    
     SELECT 
         @iva =iva,
         @um = SATUM,    
@@ -100,12 +108,7 @@ BEGIN
     FROM Catalogue WHERE id_code = @idCatalogue;
 
 
-    SELECT 
-        @cost = cost,
-        @sell = sell,
-        @description = [description],
-        @idCatalogue = idCatalogue
-    FROM Materials WHERE id = @idMaterial;
+ 
 
     DECLARE @subTotalCost DECIMAL(14,4)= @cost * @quantity;
     DECLARE @subTotalSell DECIMAL(14,4)= @sell * @quantity;
