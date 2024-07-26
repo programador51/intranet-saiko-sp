@@ -3,36 +3,16 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 07-15-2024
--- Description: Add a new ODC from materials
--- STORED PROCEDURE NAME:	sp_AddOdcFromMaterials
+-- Create date: 07-25-2024
+-- Description: 
+-- STORED PROCEDURE NAME:	sp_AddProyectRemision
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @idSupplier: The supplier id
--- @subTotalCost: The sub total cost
--- @subTotalSell: The sub total sell
--- @createdBy: The user who created the ODC
--- @idExecutive: The executive id
--- @idPosition: The position id
+-- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @tranName: The transaction name
--- @trancount: The transaction count
--- @tc: The exchange rate
--- @idTypeDocument: The type document id
--- @idStatus: The status id
--- @iva: The IVA
--- @generateCxP: The generate CxP
--- @idCurrency: The currency id
--- @acreditedAmount: The acredited amount
--- @initialDate: The initial date
--- @expirationDate: The expiration date
--- @reminderDate: The reminder date
--- @ivaAmount: The IVA amount
--- @totalAmount: The total amount
-
 -- ===================================================================================================================================
 -- Returns: 
 -- @ErrorOccurred: Identify if any error occurred
@@ -44,12 +24,12 @@
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-07-15		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-07-25		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_AddOdcFromMaterials')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_AddProyectRemision')
     BEGIN 
 
-        DROP PROCEDURE sp_AddOdcFromMaterials;
+        DROP PROCEDURE sp_AddProyectRemision;
     END
 GO
 SET ANSI_NULLS ON
@@ -58,22 +38,22 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 07/15/2024
--- Description: sp_AddOdcFromMaterials - Add a new ODC from materials
-CREATE PROCEDURE sp_AddOdcFromMaterials(
-    @idSupplier INT,
-    @subTotalCost DECIMAL(14,4),
-    @subTotalSell DECIMAL(14,4),
+-- Create Date: 07/25/2024
+-- Description: sp_AddProyectRemision - Some Notes
+CREATE PROCEDURE sp_AddProyectRemision(
+    @idPosition INT,
+    @subTotal DECIMAL(14,4),
     @createdBy NVARCHAR(30),
-    @idExecutive INT,
-    @idPosition INT
+    @idExecutive INT
+
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
 
-    DECLARE @tranName NVARCHAR(50) = 'addOdcFromMaterials';
+    
+    DECLARE @tranName NVARCHAR(50) = 'addRemisionProyects';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
     BEGIN TRY
@@ -85,28 +65,44 @@ BEGIN
             BEGIN
                 SAVE TRANSACTION @tranName;
             END
-        DECLARE @tc DECIMAL(14,4) = 20
+        DECLARE @tc DECIMAL(14,4) = 20;
 
-        DECLARE @idTypeDocument INT = 3;
-        DECLARE @idStatus INT = 10;
-        DECLARE @iva DECIMAL(14,4) = 0.16;
-        DECLARE @generateCxP BIT = 1;
+        DECLARE @idProyect INT;
+        DECLARE @idCustomer INT;
+
+        DECLARE @idTypeDocument INT = 2;
+        DECLARE @idStatus INT = 4;
+        DECLARE @iva DECIMAL(14,4);
         DECLARE @idCurrency INT = 1;
         DECLARE @acreditedAmount DECIMAL(14,4)=0;
+        DECLARE @ivaAmount DECIMAL(14,4);
+        DECLARE @totalAmount DECIMAL(14,4);
 
         DECLARE @initialDate DATETIME = GETUTCDATE();
         DECLARE @expirationDate DATETIME = EOMONTH(@initialDate);
         DECLARE @reminderDate DATETIME = DATEADD(DAY, (DAY(EOMONTH(@initialDate))/2), EOMONTH(@initialDate, -1));
 
-        DECLARE @ivaAmount DECIMAL(14,4)= @subTotalCost * @iva;
-        DECLARE @totalAmount DECIMAL(14,4)= @subTotalCost + @ivaAmount;
+        SELECT 
+            @iva = ivaSellRate,
+            @idProyect = idProject
+        FROM PositionsProyects 
+        WHERE id = @idPosition;
+
+        SELECT 
+            @idCustomer = idClient
+        FROM Proyects 
+        WHERE id = @idProyect;
+        
+        SET @ivaAmount = @subTotal * @iva /100;
+        SET @totalAmount = @subTotal + @ivaAmount;
+
+        
 
     INSERT INTO Documents (
         amountToBeCredited,
         amountToPay,
         createdBy,
         expirationDate,
-        generateCxP,
         idCurrency,
         idCustomer,
         idExecutive,
@@ -128,9 +124,8 @@ BEGIN
         @totalAmount,
         @createdBy,
         @expirationDate,
-        @generateCxP,
         @idCurrency,
-        @idSupplier,
+        @idCustomer,
         @idExecutive,
         @idStatus,
         @idTypeDocument,
@@ -138,7 +133,7 @@ BEGIN
         @createdBy,
         @tc,
         @reminderDate,
-        @subTotalCost,
+        @subTotal,
         @acreditedAmount,
         @totalAmount,
         @initialDate,
@@ -147,7 +142,7 @@ BEGIN
     )
 
 
-    SELECT SCOPE_IDENTITY() AS idOdc;
+    SELECT SCOPE_IDENTITY() AS idRemision;
 
         IF (@trancount = 0)
             BEGIN
@@ -182,8 +177,7 @@ BEGIN
             END
         RAISERROR(@Message, @Severity, @State);
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
-    END CATCH
-
+    END CATCH 
 
 END
 
