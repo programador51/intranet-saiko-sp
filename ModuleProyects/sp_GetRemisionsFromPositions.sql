@@ -67,7 +67,8 @@ BEGIN
         document.subTotalAmount AS subTotal,
         document.ivaAmount AS iva,
         document.createdDate AS emitedDate,
-        documentStatus.description AS documentStatus
+        documentStatus.description AS documentStatus,
+        customers.customerID AS idCustomer
     
     FROM PositionsProyects AS positions
     LEFT JOIN Documents AS document ON positions.id = document.idPosition
