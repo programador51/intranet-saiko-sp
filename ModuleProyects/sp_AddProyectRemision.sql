@@ -81,6 +81,9 @@ BEGIN
         DECLARE @initialDate DATETIME = GETUTCDATE();
         DECLARE @expirationDate DATETIME = EOMONTH(@initialDate);
         DECLARE @reminderDate DATETIME = DATEADD(DAY, (DAY(EOMONTH(@initialDate))/2), EOMONTH(@initialDate, -1));
+        
+        DECLARE @remisionNumber INT;
+        EXEC @remisionNumber = fn_getFolioV2 'pedido'
 
         SELECT 
             @iva = ivaSellRate,
@@ -117,7 +120,8 @@ BEGIN
         totalAmount,
         initialDate,
         idPosition,
-        UEN
+        UEN,
+        documentNumber
     )
     VALUES (
         @totalAmount,
@@ -138,7 +142,8 @@ BEGIN
         @totalAmount,
         @initialDate,
         @idPosition,
-        1
+        1,
+        @remisionNumber
     )
 
 

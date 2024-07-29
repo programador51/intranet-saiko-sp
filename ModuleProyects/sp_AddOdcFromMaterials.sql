@@ -101,6 +101,9 @@ BEGIN
         DECLARE @ivaAmount DECIMAL(14,4)= @subTotalCost * @iva;
         DECLARE @totalAmount DECIMAL(14,4)= @subTotalCost + @ivaAmount;
 
+        DECLARE @odcNumber INT;
+        EXEC @odcNumber = fn_getFolioV2 'oc'
+
     INSERT INTO Documents (
         amountToBeCredited,
         amountToPay,
@@ -121,7 +124,8 @@ BEGIN
         totalAmount,
         initialDate,
         idPosition,
-        UEN
+        UEN,
+        documentNumber
     )
     VALUES (
         @totalAmount,
@@ -143,7 +147,8 @@ BEGIN
         @totalAmount,
         @initialDate,
         @idPosition,
-        1
+        1,
+        @odcNumber
     )
 
 
