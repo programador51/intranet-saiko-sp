@@ -54,6 +54,7 @@ BEGIN
     DECLARE @tranName NVARCHAR(50)='updateRecivedMaterials';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
+
     BEGIN TRY
         IF (@trancount= 0)
                 BEGIN
@@ -65,9 +66,9 @@ BEGIN
                 END
 
 
-        UPDATE DocumentsItems SET 
+        UPDATE DocumentItems SET 
             receivedMaterials= receivedMaterials + @quantityToRecive,
-            updatedBy=@updatedBy
+            lastUpdatedBy=@updatedBy
         WHERE 
             idMaterial=@idMaterial 
             AND document =@idOdc;

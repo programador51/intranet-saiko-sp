@@ -75,7 +75,7 @@ BEGIN
     IF(@isValidDocument = 1)
         BEGIN
             SELECT 
-                @totalRecivedMaterials = SUM(ISNULL(items.quantity,0))
+                @totalRecivedMaterials = SUM(ISNULL(items.receivedMaterials,0))
             FROM 
                 DocumentItems AS items
             LEFT JOIN Documents AS document ON items.document = document.idDocument
@@ -84,6 +84,7 @@ BEGIN
                 AND document.idTypeDocument = 3
             GROUP BY 
                 items.idMaterial;
+
 
 
 
@@ -96,11 +97,16 @@ BEGIN
                 AND items.idMaterial = @idMaterial;
 
             DECLARE @supposedlyReceivedMaterials INT = @recivedMaterials + @quantityToRecive;
+            
 
+            DECLARE @totalMaterials INT
+            SELECT 
+                @totalMaterials = initialQuantity
+            FROM Materials
 
             SELECT 
                 @canReciveMaterials = CASE 
-                    WHEN (@supposedlyReceivedMaterials  < @itemQuantity) AND (@supposedlyReceivedMaterials < @totalRecivedMaterials) THEN 1
+                    WHEN (@supposedlyReceivedMaterials  <= @itemQuantity) AND ((@supposedlyReceivedMaterials+@totalRecivedMaterials) <= @totalMaterials) THEN 1
                     ELSE 0
                 END
 
