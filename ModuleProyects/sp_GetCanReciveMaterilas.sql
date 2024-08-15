@@ -82,6 +82,7 @@ BEGIN
             WHERE 
                 document.idStatus != 12
                 AND document.idTypeDocument = 3
+                AND items.idMaterial = @idMaterial
             GROUP BY 
                 items.idMaterial;
 
@@ -96,13 +97,21 @@ BEGIN
                 items.document = @idOdc
                 AND items.idMaterial = @idMaterial;
 
+            -- PRINT 'Materiales actuales recibidos: ' + CAST(@recivedMaterials AS NVARCHAR(256))
+            -- PRINT 'Cantidad de materiales en la ODC: ' + CAST(@itemQuantity AS NVARCHAR(256))
+
             DECLARE @supposedlyReceivedMaterials INT = @recivedMaterials + @quantityToRecive;
             
+            -- PRINT 'La suma de los materiales recibidos con los que quiero recibir: ' + CAST(@supposedlyReceivedMaterials AS NVARCHAR(256))
+            -- PRINT 'El total del material de todas las odc: ' + CAST(@totalRecivedMaterials AS NVARCHAR(256))
 
             DECLARE @totalMaterials INT
             SELECT 
                 @totalMaterials = initialQuantity
             FROM Materials
+            WHERE 
+                id = @idMaterial;
+            -- PRINT 'El total del material de la posicion: ' + CAST(@totalMaterials AS NVARCHAR(256))
 
             SELECT 
                 @canReciveMaterials = CASE 

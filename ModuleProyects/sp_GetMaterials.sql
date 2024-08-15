@@ -93,14 +93,10 @@ BEGIN
         material.idProyect,
         (
             SELECT 
-                SUM(item.receivedMaterials)
-            FROM DocumentItems AS item
-            LEFT JOIN Documents AS document ON material.idPosition = document.idPosition
+                ISNULL(SUM(items.receivedMaterials),0)
+            FROM DocumentItems AS items
             WHERE 
-                document.[idStatus] !=12 
-                AND document.idTypeDocument = 3 
-                AND item.idCatalogue = material.idCatalogue
-                AND material.idPosition = document.idPosition
+                items.idMaterial = material.id
         )AS receivedMaterials
     FROM Materials AS material
     LEFT JOIN Catalogue AS catalogue ON material.idCatalogue = catalogue.id_code

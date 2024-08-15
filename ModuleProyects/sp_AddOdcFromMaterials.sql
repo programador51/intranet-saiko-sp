@@ -104,6 +104,13 @@ BEGIN
         DECLARE @odcNumber INT;
         EXEC @odcNumber = fn_getFolioV2 'oc'
 
+        DECLARE @creditDays INT;
+
+        SELECT 
+            @creditDays = ISNULL(creditDays,15)
+        FROM Customers
+        WHERE customerID = @idSupplier;
+
     INSERT INTO Documents (
         amountToBeCredited,
         amountToPay,
@@ -125,7 +132,9 @@ BEGIN
         initialDate,
         idPosition,
         UEN,
-        documentNumber
+        documentNumber,
+        creditDays,
+        createdDate
     )
     VALUES (
         @totalAmount,
@@ -148,7 +157,9 @@ BEGIN
         @initialDate,
         @idPosition,
         1,
-        @odcNumber
+        @odcNumber,
+        @creditDays,
+        GETUTCDATE()
     )
 
 

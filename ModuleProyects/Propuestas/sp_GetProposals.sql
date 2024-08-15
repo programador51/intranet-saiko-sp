@@ -1,39 +1,35 @@
-
 -- **************************************************************************************************************************************************
 --	STORED PROCEDURE OVERVIEW INFORMATION
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 07-29-2024
--- Description: Get the remision header
--- STORED PROCEDURE NAME:	sp_GetRemisionHeader
+-- Create date: 08-06-2024
+-- Description: Get the proposals table
+-- STORED PROCEDURE NAME:	sp_GetProposals
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @idPosition: The position id
+-- @limit INT - Limit of registers to fetch
+-- @page INT - Page to fetch
+-- @orderBy NVARCHAR(4) - Order by ASC or DESC
+-- @status NVARCHAR(256) - Status to filter
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @totalSell: The total sell
--- @totalRemision: The total remision
--- @residue: The residue
 -- ===================================================================================================================================
 -- Returns: 
--- @totalSell: The total sell
--- @totalRemision: The total remision
--- @residue: The residue
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-07-29		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-08-06		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetRemisionHeader')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetProposals')
     BEGIN 
 
-        DROP PROCEDURE sp_GetRemisionHeader;
+        DROP PROCEDURE sp_GetProposals;
     END
 GO
 SET ANSI_NULLS ON
@@ -42,44 +38,67 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 07/29/2024
--- Description: sp_GetRemisionHeader - Gets the remision header
-CREATE PROCEDURE sp_GetRemisionHeader(
-    @idPosition INT
+-- Create Date: 08/06/2024
+-- Description: sp_GetProposals - Get the proposals table
+CREATE PROCEDURE sp_GetProposals(
+    @limit INT,
+    @page INT,
+    @orderBy NVARCHAR(4),
+    @status NVARCHAR(256)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-
     
+    DECLARE @offsetValue INT;
+    SELECT @offsetValue = (@page - 1) * @limit;
+    DECLARE @pages INT;
+    DECLARE @noRecordsFound INT;
 
-    DECLARE @totalSell DECIMAL(14,4);
-    DECLARE @totalRemision DECIMAL(14,4);
-    DECLARE @residue DECIMAL(14,4);
-
-    SELECT
-        @totalSell = totalSell
-    FROM PositionsProyects
-    WHERE 
-        id = @idPosition;
 
     SELECT 
-        @totalRemision=SUM(totalAmount)
-    FROM Documents
+        id,
+        idCustomer,
+        idExecutive,
+        idProyect,
+        proposalNumber,
+        subTotal,
+        iva,
+        total
+        
+    FROM ProyectProposals
     WHERE 
-        idPosition = @idPosition
-        AND idTypeDocument = 2
-        AND idStatus != 6;
-
-    SET @residue = @totalSell - @totalRemision;
+        [status] = 1 AND
+        (@status IS NULL OR proposalStatus = @status)
+    ORDER BY 
+        CASE 
+            WHEN proposalStatus = 'Activa' THEN 1
+            WHEN proposalStatus = 'Enviada' THEN 2
+            WHEN proposalStatus = 'Aceptada' THEN 3
+            ELSE 4
+        END,
+        CASE 
+            WHEN @orderBy='ASC' OR @orderBy IS NULL THEN id
+        END ASC,
+        CASE 
+            WHEN @orderBy='DESC' THEN id
+        END DESC
+    OFFSET @offsetValue ROWS
+    FETCH NEXT @limit ROWS ONLY; 
 
     SELECT 
-        @totalSell AS totalSell,
-        @totalRemision AS totalRemision,
-        @residue AS residue;
+        @noRecordsFound = COUNT(*)
+    FROM ProyectProposals
+    WHERE 
+        [status] = 1 AND
+        (@status IS NULL OR proposalStatus = @status);
 
-
+    SELECT 
+        @pages = CASE WHEN CEILING(@noRecordsFound / @limit) <1 THEN 1 ELSE CEILING(@noRecordsFound / @limit) END;
+    SELECT 
+        @pages AS pages,
+        @noRecordsFound AS noRecordsFound;
 
 END
 

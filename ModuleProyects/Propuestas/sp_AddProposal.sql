@@ -3,33 +3,43 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 07-25-2024
--- Description: 
--- STORED PROCEDURE NAME:	sp_AddProyectRemision
+-- Create date: 08-05-2024
+-- Description: Add a proposal
+-- STORED PROCEDURE NAME:	sp_AddProposal
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @customerRFC: The RFC provider from the legal document
+-- @positions: The positions to add
+-- @idExecutive: The executive id
+-- @createdBy: The person who created the record
+-- @attn: The attention of the proposal
+-- @expirationDate: The expiration date of the proposal
+-- @paymentTerms: The payment terms of the proposal
+-- @termsAndConditions: The terms and conditions of the proposal
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
+-- @idProyect: The project id
+-- @idCustomer: The customer id
+-- @subTotal: The subtotal of the proposal
+-- @iva: The iva of the proposal
+-- @idProposal: The proposal id
+-- @tranName: The transaction name
+-- @trancount: The transaction count
 -- ===================================================================================================================================
 -- Returns: 
--- @ErrorOccurred: Identify if any error occurred
--- @Message: The reply message
--- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-07-25		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-08-05		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_AddProyectRemision')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_AddProposal')
     BEGIN 
 
-        DROP PROCEDURE sp_AddProyectRemision;
+        DROP PROCEDURE sp_AddProposal;
     END
 GO
 SET ANSI_NULLS ON
@@ -38,22 +48,29 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 07/25/2024
--- Description: sp_AddProyectRemision - Some Notes
-CREATE PROCEDURE sp_AddProyectRemision(
-    @idPosition INT,
-    @subTotal DECIMAL(14,4),
+-- Create Date: 08/05/2024
+-- Description: sp_AddProposal - Add a proposal
+CREATE PROCEDURE sp_AddProposal(
+    @positions ProposalPositionIdType READONLY,
+    @idExecutive INT,
     @createdBy NVARCHAR(30),
-    @idExecutive INT
-
+    @attn NVARCHAR(256),
+    @expirationDate DATE,
+    @paymentTerms NVARCHAR(256),
+    @termsAndConditions NVARCHAR(MAX)
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-
     
-    DECLARE @tranName NVARCHAR(50) = 'addRemisionProyects';
+    DECLARE @idProyect INT;
+    DECLARE @idCustomer INT;
+    DECLARE @subTotal DECIMAL(14,4);
+    DECLARE @iva DECIMAL(14,4);
+    DECLARE @idProposal INT;
+
+    DECLARE @tranName NVARCHAR(50) = 'addProposal';
     DECLARE @trancount INT;
     SET @trancount = @@trancount;
     BEGIN TRY
@@ -65,99 +82,80 @@ BEGIN
             BEGIN
                 SAVE TRANSACTION @tranName;
             END
-        DECLARE @tc DECIMAL(14,4) = 20;
 
-        DECLARE @idProyect INT;
-        DECLARE @idCustomer INT;
-
-        DECLARE @idTypeDocument INT = 2;
-        DECLARE @idStatus INT = 4;
-        DECLARE @creditDays INT;
-        DECLARE @iva DECIMAL(14,4);
-        DECLARE @idCurrency INT = 1;
-        DECLARE @acreditedAmount DECIMAL(14,4)=0;
-        DECLARE @ivaAmount DECIMAL(14,4);
-        DECLARE @totalAmount DECIMAL(14,4);
-
-        DECLARE @initialDate DATETIME = GETUTCDATE();
-        DECLARE @expirationDate DATETIME = EOMONTH(@initialDate);
-        DECLARE @reminderDate DATETIME = DATEADD(DAY, (DAY(EOMONTH(@initialDate))/2), EOMONTH(@initialDate, -1));
+    
+        UPDATE proposal SET
+            proposal.proposalStatus ='Cancelada',
+            proposal.status= 0
+        FROM ProyectProposals AS proposal
+        LEFT JOIN ProposalPositionIndex AS proposalIndex ON proposalIndex.idProposal = proposal.id
+        WHERE proposalIndex.idPosition IN (SELECT idPosition FROM @positions);
         
-        DECLARE @remisionNumber INT;
-        EXEC @remisionNumber = fn_getFolioV2 'pedido'
-
         SELECT 
-            @iva = ivaSellRate,
             @idProyect = idProject
-        FROM PositionsProyects 
-        WHERE id = @idPosition;
+        FROM PositionsProyects
+        WHERE id IN (SELECT TOP(1) idPosition FROM @positions);
 
         SELECT 
             @idCustomer = idClient
-        FROM Proyects 
+        FROM Proyects
         WHERE id = @idProyect;
 
         SELECT 
-            @creditDays = ISNULL(creditDays,15)
-        FROM Customers 
-        WHERE customerID = @idCustomer;
+            @subTotal = SUM(sell),
+            @iva = SUM(ivaSellAmount)
+        FROM PositionsProyects
+        WHERE id IN (SELECT idPosition FROM @positions);
+
+
+        INSERT INTO ProyectProposals(
+            idCustomer,
+            idExecutive,
+            idProyect,
+            proposalNumber,
+            subTotal,
+            iva,
+            attn,
+            expirationDate,
+            paymentTerms,
+            termsAndConditions,
+            createdBy,
+            updatedBy
+        )
+        VALUES (
+            @idCustomer,
+            @idExecutive,
+            @idProyect,
+            'P' + CAST(@idProyect AS NVARCHAR(256)) + '-' + CAST((SELECT COUNT(*) FROM ProyectProposals WHERE idProyect = @idProyect) AS NVARCHAR(256)),-- NombreCorto+NumeroConcencutivo.
+            @subTotal,
+            @iva,
+            @attn,
+            @expirationDate,
+            @paymentTerms,
+            @termsAndConditions,
+            @createdBy,
+            @createdBy
+        )
+
+        SELECT 
+            @idProposal = SCOPE_IDENTITY();
         
-        SET @ivaAmount = @subTotal * @iva /100;
-        SET @totalAmount = @subTotal + @ivaAmount;
+        INSERT INTO ProposalPositionIndex(
+            idProposal,
+            idPosition,
+            positionDescription,
+            createdBy,
+            updatedBy
+        )
+        SELECT 
+            @idProposal,
+            idPosition,
+            positionDescription,
+            @createdBy,
+            @createdBy
+        FROM @positions;
 
-        
-
-    INSERT INTO Documents (
-        amountToBeCredited,
-        amountToPay,
-        createdBy,
-        expirationDate,
-        idCurrency,
-        idCustomer,
-        idExecutive,
-        idStatus,
-        idTypeDocument,
-        ivaAmount,
-        lastUpdatedBy,
-        protected,
-        reminderDate,
-        subTotalAmount,
-        totalAcreditedAmount,
-        totalAmount,
-        initialDate,
-        idPosition,
-        UEN,
-        documentNumber,
-        creditDays
-    )
-    VALUES (
-        @totalAmount,
-        @totalAmount,
-        @createdBy,
-        @expirationDate,
-        @idCurrency,
-        @idCustomer,
-        @idExecutive,
-        @idStatus,
-        @idTypeDocument,
-        @ivaAmount,
-        @createdBy,
-        @tc,
-        @reminderDate,
-        @subTotal,
-        @acreditedAmount,
-        @totalAmount,
-        @initialDate,
-        @idPosition,
-        1,
-        @remisionNumber,
-        @creditDays
-    )
-
-
-    SELECT SCOPE_IDENTITY() AS idRemision;
-
-        IF (@trancount = 0)
+    IF (@trancount = 0)
             BEGIN
                 COMMIT TRANSACTION @tranName;
             END
@@ -190,7 +188,8 @@ BEGIN
             END
         RAISERROR(@Message, @Severity, @State);
         EXEC sp_AddLog 'SISTEMA',@Message,@infoSended,@mustBeSyncManually,@provider,@Message,@wasAnError;
-    END CATCH 
+    END CATCH
+    
 
 END
 

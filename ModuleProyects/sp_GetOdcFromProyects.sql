@@ -62,10 +62,12 @@ BEGIN
         positions.id AS idPosition,
         document.documentNumber AS documentNumber,
         customers.socialReason AS socialReason,
+        customers.customerID AS customerId,
         currencies.code AS currency,
         document.totalAmount AS total,
         document.sentDate AS sendDate,
         documentStatus.description AS documentStatus,
+        document.idStatus AS idStatus,
         (
             SELECT 
                 CASE 
@@ -76,24 +78,29 @@ BEGIN
             FROM DocumentItems AS items
             WHERE items.document = document.idDocument
             GROUP BY items.document
-        ) AS materialStatus
+        ) AS materialStatus,
+        ISNULL(contact.email,customers.email) AS email
+        
     
     FROM PositionsProyects AS positions
     LEFT JOIN Documents AS document ON positions.id = document.idPosition
     LEFT JOIN Customers AS customers ON document.idCustomer = customers.customerID
     LEFT JOIN Currencies AS currencies ON document.idCurrency = currencies.currencyID
+    LEFT JOIN Contacts AS contact ON contact.contactID = document.idContact
     LEFT JOIN DocumentNewStatus AS documentStatus ON document.idStatus = documentStatus.id
     WHERE 
         positions.idProject = @idProyect 
         AND positions.[status] = 1 
         AND document.idTypeDocument = @idTypeDcument
-    ORDER BY 
+    ORDER BY
+    document.documentNumber,
         CASE 
             WHEN @orderBy='ASC' OR @orderBy IS NULL THEN positions.id
         END ASC,
         CASE 
             WHEN @orderBy='DESC' THEN positions.id
         END DESC
+        
         OFFSET @offsetValue ROWS
     FETCH NEXT @limit ROWS ONLY; 
 

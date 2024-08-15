@@ -111,16 +111,20 @@ BEGIN
         @umDescription = umDescription,
         @productKey= satKey,
         @productKeyDescription= satDescription,
-        @odcClient = ocCustomer,
-        @positionDescription = [description],
+        @odcClient = ISNULL(ocCustomer,'ND'),
+        @positionDescription = ISNULL([description],'ND'),
         @idProyect = idProject
     FROM PositionsProyects WHERE id = @idPosition;
 
     SELECT 
-        @solped = solped
+        @solped = ISNULL(solped,'ND')
     FROM Proyects WHERE id = @idProyect;
 
-    DECLARE @buildDescription NVARCHAR(256)= CONCAT('Orden de compra No. ',@odcClient, ' | ','Solped No. ',@solped, ' | ', @positionDescription, ' | ', @description);
+    DECLARE @buildDescription NVARCHAR(256) = 
+    'Orden de compra No. ' + @odcClient + ' - ' + 
+    'Solped No. ' + @solped + ' - ' + 
+    @positionDescription + ' - ' + @description;
+
 
 
 
