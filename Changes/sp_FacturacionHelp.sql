@@ -3,33 +3,33 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 08-05-2024
--- Description: Validates if a proposal can be added
--- STORED PROCEDURE NAME:	sp_GetCanAddProposal
+-- Create date: 08-15-2024
+-- Description: 
+-- STORED PROCEDURE NAME:	sp_FacturacionHelp
 -- **************************************************************************************************************************************************
 -- =============================================
--- PARAMETERS
--- @positions: The positions to validate
+-- PARAMETERS:
+-- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
--- @isSameProject: Identify if all the positions are from the same project
--- @isAllStatusGood: Identify if all the positions have a good status
 -- ===================================================================================================================================
 -- Returns: 
--- @canAddProposal: Identify if the proposal can be added
+-- @ErrorOccurred: Identify if any error occurred
+-- @Message: The reply message
+-- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-08-05		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-08-15		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetCanAddProposal')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_FacturacionHelp')
     BEGIN 
 
-        DROP PROCEDURE sp_GetCanAddProposal;
+        DROP PROCEDURE sp_FacturacionHelp;
     END
 GO
 SET ANSI_NULLS ON
@@ -38,49 +38,24 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 08/05/2024
--- Description: sp_GetCanAddProposal - Validates if a proposal can be added
-CREATE PROCEDURE sp_GetCanAddProposal(
-    @positions ProposalPositionIdType READONLY
-) AS 
+-- Create Date: 08/15/2024
+-- Description: sp_FacturacionHelp - Some Notes
+CREATE PROCEDURE sp_FacturacionHelp AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-
-    DECLARE @isSameProject BIT;
-    DECLARE @isAllStatusGood BIT;
-
-
-    -- Inserta los IDs de proyecto asociados con las posiciones en una tabla temporal
-    SELECT idProject INTO #Projects
-    FROM PositionsProyects
-    WHERE id IN (SELECT idPosition FROM @positions);
-
-    -- Comprueba si todos los IDs de posición pertenecen al mismo proyecto
-    SELECT @isSameProject = CASE
-        WHEN COUNT(DISTINCT idProject) = 1 THEN 1
-        ELSE 0
-    END
-    FROM #Projects;
-
-    DROP TABLE #Projects 
-
     SELECT 
-        @isAllStatusGood = 
-            CASE
-                WHEN COUNT(*) = SUM(CASE WHEN statusPosition != 'Cancelar' THEN 1 ELSE 0 END) THEN 1
-                ELSE 0
-            END
-        FROM PositionsProyects WHERE id IN (SELECT idPosition FROM @positions);
-
-
-    SELECT 
-        CASE 
-            WHEN @isSameProject = 1 AND @isAllStatusGood = 1 THEN CAST(1 AS BIT)
-            ELSE CAST(0 AS BIT)
-        END AS canAddProposal;
-
+        document.idDocument AS idDocument,
+        document.documentNumber AS documentNumber,
+        document.idCustomer AS idCustomer,
+        document.protected AS tc,
+        customer.creditDays AS creditDays
+    FROM Documents AS document
+    LEFT JOIN Customers AS customer ON document.idCustomer = customer.customerID
+    WHERE 
+        document.idTypeDocument = 2
+        AND document.idStatus = 4
 
 END
 

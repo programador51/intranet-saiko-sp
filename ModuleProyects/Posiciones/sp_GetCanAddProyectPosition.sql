@@ -55,7 +55,7 @@ BEGIN
             END AS canAddProyect
     FROM PositionsProyects 
     WHERE 
-        solped = @idProject;
+        idProject = @idProject;
 
 END
 

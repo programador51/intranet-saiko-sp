@@ -17,3 +17,5 @@ DELETE FROM Documents WHERE idPosition IS NOT NULL
 DELETE FROM Proyects
 DELETE FROM PositionsProyects
 DELETE FROM Materials
+DELETE FROM ProposalPositionIndex
+DELETE FROM ProyectProposals

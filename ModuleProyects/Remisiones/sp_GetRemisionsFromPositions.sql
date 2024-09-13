@@ -28,11 +28,13 @@
 -- =================================================================================================
 --	2024-07-23		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetRemisionsFromPositions')
-    BEGIN 
+IF EXISTS (SELECT *
+FROM sys.objects
+WHERE type = 'P' AND name ='sp_GetRemisionsFromPositions')
+    BEGIN
 
-        DROP PROCEDURE sp_GetRemisionsFromPositions;
-    END
+    DROP PROCEDURE sp_GetRemisionsFromPositions;
+END
 GO
 SET ANSI_NULLS ON
 GO
@@ -47,7 +49,8 @@ CREATE PROCEDURE sp_GetRemisionsFromPositions(
     @limit INT,
     @page INT,
     @orderBy NVARCHAR(4)
-) AS 
+)
+AS
 BEGIN
 
     SET LANGUAGE Spanish;
@@ -57,7 +60,7 @@ BEGIN
     SELECT @offsetValue = (@page - 1) * @limit;
     -- DECLARE @likeSearch VARCHAR(255) = ISNULL('%' + @search + '%', NULL);
 
-    SELECT 
+    SELECT
         document.idDocument AS idDocument,
         positions.id AS idPosition,
         document.documentNumber AS documentNumber,
@@ -68,16 +71,18 @@ BEGIN
         document.ivaAmount AS iva,
         document.createdDate AS emitedDate,
         documentStatus.description AS documentStatus,
-        customers.customerID AS idCustomer
-    
+        customers.customerID AS idCustomer,
+        document.uuid AS uuid,
+        document.idStatus AS idStatus
+
     FROM PositionsProyects AS positions
-    LEFT JOIN Documents AS document ON positions.id = document.idPosition
-    LEFT JOIN Customers AS customers ON document.idCustomer = customers.customerID
-    LEFT JOIN Currencies AS currencies ON document.idCurrency = currencies.currencyID
-    LEFT JOIN DocumentNewStatus AS documentStatus ON document.idStatus = documentStatus.id
+        LEFT JOIN Documents AS document ON positions.id = document.idPosition
+        LEFT JOIN Customers AS customers ON document.idCustomer = customers.customerID
+        LEFT JOIN Currencies AS currencies ON document.idCurrency = currencies.currencyID
+        LEFT JOIN DocumentNewStatus AS documentStatus ON document.idStatus = documentStatus.id
     WHERE 
-        positions.id = @idPosition 
-        AND positions.[status] = 1 
+        positions.id = @idPosition
+        AND positions.[status] = 1
         AND document.idTypeDocument = @idTypeDcument
     ORDER BY 
         CASE 
@@ -87,25 +92,25 @@ BEGIN
             WHEN @orderBy='DESC' THEN positions.id
         END DESC
         OFFSET @offsetValue ROWS
-    FETCH NEXT @limit ROWS ONLY; 
+    FETCH NEXT @limit ROWS ONLY;
 
 
     DECLARE @pages INT;
     DECLARE @noRecordsFound INT;
-    SELECT 
-        @noRecordsFound = COUNT(*) 
+    SELECT
+        @noRecordsFound = COUNT(*)
     FROM PositionsProyects AS positions
-    LEFT JOIN Documents AS document ON positions.id = document.idPosition
-    LEFT JOIN Customers AS customers ON document.idCustomer = customers.customerID
-    LEFT JOIN Currencies AS currencies ON document.idCurrency = currencies.currencyID
-    LEFT JOIN DocumentNewStatus AS documentStatus ON document.idStatus = documentStatus.id
+        LEFT JOIN Documents AS document ON positions.id = document.idPosition
+        LEFT JOIN Customers AS customers ON document.idCustomer = customers.customerID
+        LEFT JOIN Currencies AS currencies ON document.idCurrency = currencies.currencyID
+        LEFT JOIN DocumentNewStatus AS documentStatus ON document.idStatus = documentStatus.id
     WHERE 
-        positions.id = @idPosition 
-        AND positions.[status] = 1 
+        positions.id = @idPosition
+        AND positions.[status] = 1
         AND document.idTypeDocument = @idTypeDcument
-    SELECT 
+    SELECT
         @pages = CASE WHEN CEILING(@noRecordsFound / @limit) <1 THEN 1 ELSE CEILING(@noRecordsFound / @limit) END;
-    SELECT 
+    SELECT
         @pages AS pages,
         @noRecordsFound AS noRecordsFound;
 

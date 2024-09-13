@@ -74,11 +74,11 @@ BEGIN
             OR proyect.noRFQ LIKE @likeSearch
             OR proyect.buyer LIKE @likeSearch
             OR proyect.solped LIKE @likeSearch
+            OR client.socialReason LIKE @likeSearch
+            OR proyect.id LIKE @likeSearch
+            
             )
-            AND (
-               
-                proyect.[statusProyect] = @status
-            )
+            
         AND (@idClient IS NULL OR proyect.idClient = @idClient)
 
     ORDER BY 

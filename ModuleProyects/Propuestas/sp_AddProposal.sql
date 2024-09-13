@@ -155,6 +155,42 @@ BEGIN
             @createdBy
         FROM @positions;
 
+        UPDATE positions SET
+            positions.statusPosition = CASE 
+                WHEN positions.statusPosition = 'SolicitudNormal'  THEN 'Propuesta'
+                WHEN positions.statusPosition = 'SolicitudUrgente'  THEN 'Propuesta'
+                ELSE positions.statusPosition
+            END,
+            positions.updatedBy = @createdBy,
+            positions.updatedDate = GETUTCDATE()
+        FROM PositionsProyects AS positions
+        WHERE positions.id IN (SELECT idPosition FROM @positions);
+        
+        DECLARE @totalPositions INT;
+        DECLARE @totalPositionsActive INT;
+        DECLARE @hasProposal BIT=0;
+
+        SELECT 
+            @totalPositions= COUNT(*) 
+        FROM PositionsProyects WHERE idProject= @idProyect AND [statusPosition] !='Cancelar';
+
+        SELECT 
+            @totalPositionsActive= COUNT(*)
+        FROM PositionsProyects WHERE idProject= @idProyect AND [statusPosition] ='Activo';
+
+        IF(@totalPositions = @totalPositionsActive)
+            BEGIN
+                UPDATE Proyects SET 
+                    [statusProyect]='ActivoOperando'
+                WHERE id= @idProyect;
+            END
+        ELSE 
+            BEGIN
+                UPDATE Proyects SET 
+                    [statusProyect]='ActivoPropuestaPendiente'
+                WHERE id= @idProyect;
+            END
+
     IF (@trancount = 0)
             BEGIN
                 COMMIT TRANSACTION @tranName;

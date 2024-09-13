@@ -3,33 +3,33 @@
 -- **************************************************************************************************************************************************
 -- =============================================
 -- Author:      Adrian Alardin
--- Create date: 08-06-2024
--- Description: Get the proposals table
--- STORED PROCEDURE NAME:	sp_GetProposals
+-- Create date: 08-20-2024
+-- Description: 
+-- STORED PROCEDURE NAME:	sp_GetIsPositionRemisionsInvoiced
 -- **************************************************************************************************************************************************
 -- =============================================
 -- PARAMETERS:
--- @limit INT - Limit of registers to fetch
--- @page INT - Page to fetch
--- @orderBy NVARCHAR(4) - Order by ASC or DESC
--- @status NVARCHAR(256) - Status to filter
+-- @customerRFC: The RFC provider from the legal document
 -- ===================================================================================================================================
 -- =============================================
 -- VARIABLES:
 -- ===================================================================================================================================
 -- Returns: 
+-- @ErrorOccurred: Identify if any error occurred
+-- @Message: The reply message
+-- @CodeNumber: The error code
 -- =============================================
 -- **************************************************************************************************************************************************
 --	REVISION HISTORY/LOG
 -- **************************************************************************************************************************************************
 --	Date			Programmer					Revision	    Revision Notes			
 -- =================================================================================================
---	2024-08-06		Adrian Alardin   			1.0.0.0			Initial Revision	
+--	2024-08-20		Adrian Alardin   			1.0.0.0			Initial Revision	
 -- *****************************************************************************************************************************
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetProposals')
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name ='sp_GetIsPositionRemisionsInvoiced')
     BEGIN 
 
-        DROP PROCEDURE sp_GetProposals;
+        DROP PROCEDURE sp_GetIsPositionRemisionsInvoiced;
     END
 GO
 SET ANSI_NULLS ON
@@ -38,69 +38,30 @@ SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
 -- Author:      Adrian Alardin Iracheta
--- Create Date: 08/06/2024
--- Description: sp_GetProposals - Get the proposals table
-CREATE PROCEDURE sp_GetProposals(
-    @limit INT,
-    @page INT,
-    @orderBy NVARCHAR(4),
-    @status NVARCHAR(256),
-    @idProyect INT
+-- Create Date: 08/20/2024
+-- Description: sp_GetIsPositionRemisionsInvoiced - Some Notes
+CREATE PROCEDURE sp_GetIsPositionRemisionsInvoiced(
+    @idPosition INT
 ) AS 
 BEGIN
 
     SET LANGUAGE Spanish;
     SET NOCOUNT ON
-    
-    DECLARE @offsetValue INT;
-    SELECT @offsetValue = (@page - 1) * @limit;
-    DECLARE @pages INT;
-    DECLARE @noRecordsFound INT;
-
-
+    DECLARE @totalRemisions INT;
+    DECLARE @totalRemisionsInvoiced INT;
     SELECT 
-        id,
-        idCustomer,
-        idExecutive,
-        idProyect,
-        proposalNumber,
-        subTotal,
-        iva,
-        total
-        
-    FROM ProyectProposals
+        @totalRemisions= COUNT (*) ,
+        @totalRemisionsInvoiced= SUM(CASE WHEN idStatus= 5 THEN 1 ELSE 0 END) 
+    FROM Documents 
     WHERE 
-        [status] = 1 AND
-        (@status IS NULL OR proposalStatus = @status)
-        AND (@idProyect IS NULL OR idProyect = @idProyect)
-    ORDER BY 
+        idPosition = @idPosition
+        AND idTypeDocument = 2
+    SELECT 
         CASE 
-            WHEN proposalStatus = 'Activa' THEN 1
-            WHEN proposalStatus = 'Enviada' THEN 2
-            WHEN proposalStatus = 'Aceptada' THEN 3
-            ELSE 4
-        END,
-        CASE 
-            WHEN @orderBy='ASC' OR @orderBy IS NULL THEN id
-        END ASC,
-        CASE 
-            WHEN @orderBy='DESC' THEN id
-        END DESC
-    OFFSET @offsetValue ROWS
-    FETCH NEXT @limit ROWS ONLY; 
+            WHEN @totalRemisions = @totalRemisionsInvoiced THEN CAST(1 AS BIT)
+            ELSE CAST(0 AS BIT)
+        END AS isRemisionsInvoiced;
 
-    SELECT 
-        @noRecordsFound = COUNT(*)
-    FROM ProyectProposals
-    WHERE 
-        [status] = 1 AND
-        (@status IS NULL OR proposalStatus = @status);
-
-    SELECT 
-        @pages = CASE WHEN CEILING(@noRecordsFound / @limit) <1 THEN 1 ELSE CEILING(@noRecordsFound / @limit) END;
-    SELECT 
-        @pages AS pages,
-        @noRecordsFound AS noRecordsFound;
 
 END
 

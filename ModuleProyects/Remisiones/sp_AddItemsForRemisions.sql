@@ -100,7 +100,7 @@ BEGIN
 
     DECLARE @odcClient NVARCHAR(256);
     DECLARE @solped NVARCHAR(256);
-    DECLARE @positionDescription NVARCHAR(256);
+    DECLARE @positionDescription NVARCHAR(500);
     
     DECLARE @idCatalogue INT=0
     DECLARE @idProyect INT;
@@ -120,10 +120,10 @@ BEGIN
         @solped = ISNULL(solped,'ND')
     FROM Proyects WHERE id = @idProyect;
 
-    DECLARE @buildDescription NVARCHAR(256) = 
+    DECLARE @buildDescription NVARCHAR(1000) = 
     'Orden de compra No. ' + @odcClient + ' - ' + 
     'Solped No. ' + @solped + ' - ' + 
-    @positionDescription + ' - ' + @description;
+    ' - ' + @description;
 
 
 
