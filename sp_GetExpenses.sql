@@ -1,0 +1,428 @@
+-- *******************************************************************************************************************************
+--	STORED PROCEDURE OVERVIEW INFORMATION
+-- *******************************************************************************************************************************
+-- Author:      Jose Luis Perez Olguin
+-- Create date: 18-02-2022
+-- Description: Get the document types that handles praxia
+-- STORED PROCEDURE NAME:	sp_GetExpenses
+-- ===============================================================================================================================
+-- PARAMETERS
+-- ===============================================================================================================================
+--	REVISION HISTORY/LOG
+-- *******************************************************************************************************************************
+--	Date			Programmer					Revision	    Revision Notes
+-- ===============================================================================================================================
+--	18-02-2022		Jose Luis Perez Olguin   			1.0.0.0			Initial Revision
+-- *******************************************************************************************************************************
+CREATE PROCEDURE sp_GetExpenses
+
+AS
+BEGIN
+
+    SELECT
+        InformativeExpenses.id AS id ,
+        InformativeExpenses.description AS description,
+        Currencies.code AS [currency.code],
+        Currencies.symbol AS [currency.symbol],
+        Currencies.description AS [currency.description],
+        TypeInformativeExpenses.[description] AS [type.description],
+        TypeInformativeExpenses.[id] AS [type.id]
+
+
+    FROM InformativeExpenses
+
+        INNER JOIN Currencies ON InformativeExpenses.currency = Currencies.currencyID
+        INNER JOIN TypeInformativeExpenses ON InformativeExpenses.idTypeInformativeExpenses = TypeInformativeExpenses.id
+
+    WHERE InformativeExpenses.[status] = 1 AND TypeInformativeExpenses.[status] = 1
+
+    ORDER BY description ASC
+
+
+
+    FOR JSON PATH, ROOT('concepts'), INCLUDE_NULL_VALUES;
+
+    END
+
+-- EXAMPLE OF RESPONSE
+-- {
+--     "concepts": [
+--         {
+--             "id": 25,
+--             "description": "#OdeC",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Costo ventas",
+--                 "id": 8
+--             }
+--         },
+--         {
+--             "id": 22,
+--             "description": "Artículos de Oficina",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Gastos",
+--                 "id": 5
+--             }
+--         },
+--         {
+--             "id": 21,
+--             "description": "Caja Chica",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Gastos",
+--                 "id": 5
+--             }
+--         },
+--         {
+--             "id": 14,
+--             "description": "Celulares",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 11,
+--             "description": "CFE",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 29,
+--             "description": "Comisiones Bancarias",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Bancos",
+--                 "id": 10
+--             }
+--         },
+--         {
+--             "id": 26,
+--             "description": "Compra",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Activo",
+--                 "id": 7
+--             }
+--         },
+--         {
+--             "id": 15,
+--             "description": "Contables",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 19,
+--             "description": "Equipo de transporte",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Seguros",
+--                 "id": 6
+--             }
+--         },
+--         {
+--             "id": 9,
+--             "description": "Estacionamiento",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Arrendamiento",
+--                 "id": 3
+--             }
+--         },
+--         {
+--             "id": 17,
+--             "description": "Gasolina",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Gastos",
+--                 "id": 5
+--             }
+--         },
+--         {
+--             "id": 2,
+--             "description": "Honorarios asimilados",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Sueldos",
+--                 "id": 1
+--             }
+--         },
+--         {
+--             "id": 3,
+--             "description": "Honorarios Personas Físicas",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Sueldos",
+--                 "id": 1
+--             }
+--         },
+--         {
+--             "id": 6,
+--             "description": "IMSS & Infonavit & SAR",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Impuestos",
+--                 "id": 2
+--             }
+--         },
+--         {
+--             "id": 13,
+--             "description": "Internet",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 18,
+--             "description": "Mantenimiento equipo de transporte",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 10,
+--             "description": "Mantenimiento oficina",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 16,
+--             "description": "Mensajería y paquetería",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 20,
+--             "description": "No deducibles",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Gastos",
+--                 "id": 5
+--             }
+--         },
+--         {
+--             "id": 28,
+--             "description": "No identificado",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Egreso",
+--                 "id": 9
+--             }
+--         },
+--         {
+--             "id": 1,
+--             "description": "Nomina",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Sueldos",
+--                 "id": 1
+--             }
+--         },
+--         {
+--             "id": 8,
+--             "description": "Oficina",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Arrendamiento",
+--                 "id": 3
+--             }
+--         },
+--         {
+--             "id": 23,
+--             "description": "Pago Tarjeta de Crédito",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Gastos",
+--                 "id": 5
+--             }
+--         },
+--         {
+--             "id": 4,
+--             "description": "Persona Moral",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Sueldos",
+--                 "id": 1
+--             }
+--         },
+--         {
+--             "id": 7,
+--             "description": "SAT",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Impuestos",
+--                 "id": 2
+--             }
+--         },
+--         {
+--             "id": 5,
+--             "description": "Sobre Nomina",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Impuestos",
+--                 "id": 2
+--             }
+--         },
+--         {
+--             "id": 12,
+--             "description": "Telefonía",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Servicios",
+--                 "id": 4
+--             }
+--         },
+--         {
+--             "id": 27,
+--             "description": "Varios",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Egreso",
+--                 "id": 9
+--             }
+--         },
+--         {
+--             "id": 24,
+--             "description": "Viaje",
+--             "currency": {
+--                 "code": "MXN",
+--                 "symbol": "$",
+--                 "description": "Modena mexicana"
+--             },
+--             "type": {
+--                 "description": "Gastos",
+--                 "id": 5
+--             }
+--         }
+--     ]
+-- }

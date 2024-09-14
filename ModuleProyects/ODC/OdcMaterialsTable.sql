@@ -1,0 +1,12 @@
+CREATE TABLE OdcMaterials
+(
+    id INT PRIMARY KEY IDENTITY(1,1),
+    idMaterial INT NOT NULL,
+    idOdc INT NOT NULL,
+    idItem INT NOT NULL,
+    [status] BIT NOT NULL DEFAULT 1,
+    createdBy NVARCHAR(256) NOT NULL,
+    createdDate DATETIME NOT NULL DEFAULT GETUTCDATE(),
+    updatedBy NVARCHAR(256),
+    updatedDate DATETIME DEFAULT GETUTCDATE(),
+);

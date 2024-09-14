@@ -1,0 +1,14 @@
+ALTER TABLE Proyects
+ADD CONSTRAINT DF_createdDate
+DEFAULT (GETUTCDATE()) FOR createdDate;
+GO
+
+ALTER TABLE Proyects
+ADD CONSTRAINT DF_updatedDate
+DEFAULT (GETUTCDATE()) FOR updatedDate;
+
+ALTER TABLE Proyects
+ADD idClient INT NOT NULL DEFAULT 0;
+
+
+

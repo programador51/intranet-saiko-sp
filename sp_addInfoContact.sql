@@ -1,15 +1,43 @@
--- =======================================================
--- Create Stored Procedure Template for Azure SQL Database
--- =======================================================
+-- **************************************************************************************************************************************************
+--	STORED PROCEDURE OVERVIEW INFORMATION
+-- **************************************************************************************************************************************************
+-- =============================================
+-- Author:      <Author,,Name>
+-- Create date: 07-02-2021
+-- Description: Add contact information related to a customer
+-- STORED PROCEDURE NAME:	sp_addInfoContact 
+-- **************************************************************************************************************************************************
+-- =============================================
+-- PARAMETERS:
+-- @customerID: Is the id of the customer to whom the contact is related
+-- @nombre: Is the firstname of the contact (not null)
+-- @middleName: Is the middle name of the contact (allow null)
+-- @apellidoP: Is the paternal surname (not null)
+-- @apellidoM: Is the maternal surname (not null)
+-- @ladaPhone: The phone lada (allow null)
+-- @phone: The phone number (allow null)
+-- @ladaCel: The celphone lada (allow null)
+-- @cellphone: The cellphone number (allow null)
+-- @puesto: charge description (allow null)
+-- @email: The email 
+-- @estatus: Indicates whether the contact is active or not
+-- @modifyBy: Who added/modify the record
+-- @today: The day it was created or modified
+-- ===================================================================================================================================
+-- Returns:    
+-- =============================================
+-- **************************************************************************************************************************************************
+--	REVISION HISTORY/LOG
+-- **************************************************************************************************************************************************
+--	Date			Programmer					Revision	    Revision Notes			
+-- =================================================================================================
+--	2021-07-02		Adrian Alardin   			1.0.0.0			Initial Revision
+--  2021-07-23      Adrian Alardin              1.0.0.1         Documentation update		
+-- *****************************************************************************************************************************
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:      Adrian Alardin Iracheta
--- Create Date: 07/02/2021
--- Description: sp_addInfoContact permite agregar la infromacion de contacto relacionado a la cuenta
--- =============================================
 CREATE PROCEDURE sp_addInfoContact
 (
     -- Add the parameters for the stored procedure here

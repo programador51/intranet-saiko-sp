@@ -1,0 +1,36 @@
+21-09-06 17:39:12.5617266 pid:22796 tid:1 sqltools Critical: 0 : An unhandled exception occurred: System.IO.FileLoadException: Could not load file or assembly 'System.Linq.Expressions, Version=4.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. El proceso no tiene acceso al archivo porque está siendo utilizado por otro proceso. (0x80070020)
+File name: 'System.Linq.Expressions, Version=4.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
+   at Newtonsoft.Json.Serialization.DefaultContractResolver.CreateContract(Type objectType)
+   at System.Collections.Concurrent.ConcurrentDictionary`2.GetOrAdd(TKey key, Func`2 valueFactory)
+   at Newtonsoft.Json.Utilities.ThreadSafeStore`2.Get(TKey key)
+   at Newtonsoft.Json.Serialization.DefaultContractResolver.ResolveContract(Type type)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.GetContract(Type type)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.GetContractSafe(Type type)
+   at Newtonsoft.Json.Serialization.JsonSerializerInternalReader.Deserialize(JsonReader reader, Type objectType, Boolean checkAdditionalContent)
+   at Newtonsoft.Json.JsonSerializer.DeserializeInternal(JsonReader reader, Type objectType)
+   at Newtonsoft.Json.JsonSerializer.Deserialize(JsonReader reader, Type objectType)
+   at Newtonsoft.Json.JsonSerializer.Deserialize[T](JsonReader reader)
+   at Microsoft.SqlServer.Management.Assessment.Engine.LoadRuleFactoryJson(JsonTextReader reader, String alias)
+   at Microsoft.SqlServer.Management.Assessment.Engine.LoadRuleFactoryJson(TextReader textReader, String alias)
+   at Microsoft.SqlServer.Management.Assessment.Engine.PushRuleFactoryJson(TextReader textReader, String alias)
+   at Microsoft.SqlServer.Management.Assessment.Engine.LoadJsonConfig()
+   at Microsoft.SqlServer.Management.Assessment.Engine..ctor()
+   at Microsoft.SqlTools.ServiceLayer.SqlAssessment.SqlAssessmentService..ctor() in D:\a\1\s\src\Microsoft.SqlTools.ServiceLayer\SqlAssessment\SqlAssessmentService.cs:line 72
+   at Microsoft.SqlTools.ServiceLayer.SqlAssessment.SqlAssessmentService.<>c.<.cctor>b__33_0() in D:\a\1\s\src\Microsoft.SqlTools.ServiceLayer\SqlAssessment\SqlAssessmentService.cs:line 44
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+   at System.Lazy`1.ExecutionAndPublication(LazyHelper executionAndPublication, Boolean useDefaultConstructor)
+   at System.Lazy`1.CreateValue()
+   at System.Lazy`1.get_Value()
+   at Microsoft.SqlTools.ServiceLayer.SqlAssessment.SqlAssessmentService.get_Instance() in D:\a\1\s\src\Microsoft.SqlTools.ServiceLayer\SqlAssessment\SqlAssessmentService.cs:line 63
+   at Microsoft.SqlTools.ServiceLayer.HostLoader.InitializeRequestHandlersAndServices(ServiceHost serviceHost, SqlToolsContext sqlToolsContext) in D:\a\1\s\src\Microsoft.SqlTools.ServiceLayer\HostLoader.cs:line 141
+   at Microsoft.SqlTools.ServiceLayer.HostLoader.CreateAndStartServiceHost(SqlToolsContext sqlToolsContext) in D:\a\1\s\src\Microsoft.SqlTools.ServiceLayer\HostLoader.cs:line 62
+   at Microsoft.SqlTools.ServiceLayer.Program.Main(String[] args) in D:\a\1\s\src\Microsoft.SqlTools.ServiceLayer\Program.cs:line 47
+
+
+Callstack=   at System.Environment.get_StackTrace()
+   at System.Diagnostics.TraceEventCache.get_Callstack()
+   at Microsoft.SqlTools.Utility.SqlToolsTraceListener.WriteFooter(TraceEventCache eventCache) in D:\a\1\s\src\Microsoft.SqlTools.Hosting\Utility\Logger.cs:line 445
+   at Microsoft.SqlTools.Utility.SqlToolsTraceListener.TraceEvent(TraceEventCache eventCache, String source, TraceEventType eventType, Int32 id, String message) in D:\a\1\s\src\Microsoft.SqlTools.Hosting\Utility\Logger.cs:line 406
+   at System.Diagnostics.TraceSource.TraceEvent(TraceEventType eventType, Int32 id, String message)
+   at Microsoft.SqlTools.Utility.Logger.Write(TraceEventType eventType, LogEvent logEvent, String logMessage) in D:\a\1\s\src\Microsoft.SqlTools.Hosting\Utility\Logger.cs:line 279
+   at Microsoft.SqlTools.Utility.Logger.WriteWithCallstack(TraceEventType eventType, LogEvent logEvent, String logMessage) i
